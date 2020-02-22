@@ -1,0 +1,5 @@
+slugify
+googletrans
+requests
+python-status
+python-slugify
