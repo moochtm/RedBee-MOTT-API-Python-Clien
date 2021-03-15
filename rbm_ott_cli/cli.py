@@ -3,6 +3,8 @@ import os
 # third party
 import click  # https://pypi.org/project/click/
 from decouple import config  # https://pypi.org/project/python-decouple/
+# this package
+from rbm_ott_api_client.api import ApiClient
 # logging
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -19,8 +21,11 @@ logging.basicConfig(level=logging.INFO)
 
 
 @click.group()
-def cli():
+@click.pass_context
+def cli(ctx):
     logging.debug("CLI")
+    ctx.obj = {'api': ApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
+                                api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None))}
 
 
 @cli.command()
@@ -39,13 +44,18 @@ def products():
 
 
 @products.command("list")
-def products_list():
+@click.pass_context
+def products_list(ctx):
     logging.info("PRODUCTS LIST")
+    cu = config('RBM_MOTT_CUSTOMER', default=None)
+    bu = config('RBM_MOTT_BUSINESS_UNIT', default=None)
+    response = ctx.obj['api'].customer(cu).business_unit(bu).product().get_products()
+    click.echo(response)
 
 
 if __name__ == '__main__':
-    API_KEY_ID = config('RBM_MOTT_API_KEY_ID', default='')
-    API_KEY_SECRET = config('RBM_MOTT_API_KEY_SECRET', default='')
-    CUSTOMER = config('RBM_MOTT_CUSTOMER', default='')
-    BUSINESS_UNIT = config('RBM_MOTT_BUSINESS_UNIT', default='')
+    API_KEY_ID = config('RBM_MOTT_API_KEY_ID', default=None)
+    API_KEY_SECRET = config('RBM_MOTT_API_KEY_SECRET', default=None)
+    CUSTOMER = config('RBM_MOTT_CUSTOMER', default=None)
+    BUSINESS_UNIT = config('RBM_MOTT_BUSINESS_UNIT', default=None)
     cli()

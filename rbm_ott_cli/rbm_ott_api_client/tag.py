@@ -71,3 +71,45 @@ class Tag:
 
         response = self._request_maker.get(url=url)
         return response
+
+"""
+Example from Johan Spaedtke...shows creating tags at same time as ingesting asset...
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1">
+    <data>
+        <tag id="DRAMA" type="genre">
+            <tagNames>
+                <tagName language="en">Drama</tagName>
+            </tagNames>
+        </tag>
+        <tag id="THRILLER" type="genre">
+            <tagNames>
+                <tagName language="en">Thriller</tagName>
+            </tagNames>
+        </tag>
+        <asset>
+            <id>TheMurderOfNicoleBrownSimpson001</id>
+            <titleList>
+                <title language="en">The Murder Of Nicole Brown Simpson</title>
+            </titleList>
+            <assetType>movie</assetType>
+            <tagList>
+                <tagIdRef>DRAMA</tagIdRef>
+                <tagIdRef>THRILLER</tagIdRef>
+            </tagList>
+        </asset>
+        <material>
+            <materialRef>
+                <audioList>
+                    <audio channelDisplayNames="-5.1" channels="2-6" displayName="English" language="en" order="LR-LRCLFELsRs"/>
+                </audioList>https://emptestdata.blob.core.windows.net/sources/Nordisk/107879_TheMurderOfNicoleBrownSimpson-VOD_1080p25-16x9-LB-8ch_tr_eng_XDcamHD_08-09-2020.mxf</materialRef>
+            <subtitleList>
+                <subtitle language="da">https://emptestdata.blob.core.windows.net/sources/Nordisk/107879_TheMurderOfNicoleBrownSimpson-VOD_1080p25-16x9-LB-8ch_tr_eng-DAN_ST.srt</subtitle>
+                <subtitle language="fi">https://emptestdata.blob.core.windows.net/sources/Nordisk/107879_TheMurderOfNicoleBrownSimpson-VOD_1080p25-16x9-LB-8ch_tr_eng-FIN_ST.srt</subtitle>
+                <subtitle language="no">https://emptestdata.blob.core.windows.net/sources/Nordisk/107879_TheMurderOfNicoleBrownSimpson-VOD_1080p25-16x9-LB-8ch_tr_eng-NOR_ST.srt</subtitle>
+                <subtitle language="sv">https://emptestdata.blob.core.windows.net/sources/Nordisk/107879_TheMurderOfNicoleBrownSimpson-VOD_1080p25-16x9-LB-8ch_tr_eng-SWE_ST.srt</subtitle>
+            </subtitleList>
+        </material>
+    </data>
+</publish-metadata>"""
