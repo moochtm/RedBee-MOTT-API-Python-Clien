@@ -1,5 +1,6 @@
-slugify
-googletrans
-requests
+slugify~=0.0.1
+googletrans~=3.0.0
+requests~=2.25.1
 python-status
 python-slugify
+click~=7.1.2

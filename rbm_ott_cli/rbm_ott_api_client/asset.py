@@ -65,7 +65,7 @@ class Asset:
             <provider>provider1</provider>
             <productionYear>2017</productionYear>
             <titleList>
-                <title language="en">Title for {{assetId}} in Englisth</title>
+                <title language="en">Title for {{assetId}} in English</title>
                 <title language="sv">Title for {{assetId}} in Swedish</title>
             </titleList>
             <descriptionList>

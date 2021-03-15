@@ -4,7 +4,7 @@ from .upload import Upload
 
 
 class ApiClient:
-    def __init__(self, bearer_token):
+    def __init__(self, api_id=None, api_secret=None, bearer_token=None):
         self._request_maker = RequestMaker()
         self._request_maker.default_host = 'https://managementapi.emp.ebsd.ericsson.net/'
         self._request_maker.default_headers = {'Content-Type': 'application/xml',

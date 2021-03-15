@@ -2,8 +2,6 @@ import requests
 import urllib
 import logging
 
-import status
-
 
 class RequestMaker:
     def __init__(self):
