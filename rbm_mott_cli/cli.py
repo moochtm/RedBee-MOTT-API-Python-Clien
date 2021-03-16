@@ -4,7 +4,7 @@ import os
 import click  # https://pypi.org/project/click/
 from decouple import config  # https://pypi.org/project/python-decouple/
 # this package
-from rbm_ott_api_client.api import ApiClient
+from mgmt_api_client.mgmt_api import ManagementApiClient
 # logging
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -24,8 +24,8 @@ logging.basicConfig(level=logging.INFO)
 @click.pass_context
 def cli(ctx):
     logging.debug("CLI")
-    ctx.obj = {'api': ApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
-                                api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None))}
+    ctx.obj = {'api': ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
+                                          api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None))}
 
 
 @cli.command()

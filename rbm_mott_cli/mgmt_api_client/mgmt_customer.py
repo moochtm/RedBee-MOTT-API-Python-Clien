@@ -1,8 +1,8 @@
 
-from .asset import Asset
-from .business_unit import BusinessUnit
-from .tag import Tag
-from .product import Product, ProductOffering
+from .mgmt_asset import Asset
+from .mgmt_business_unit import BusinessUnit
+from .mgmt_tag import Tag
+from .mgmt_product import Product, ProductOffering
 
 class Customer:
     def __init__(self, customer_id, request_maker):

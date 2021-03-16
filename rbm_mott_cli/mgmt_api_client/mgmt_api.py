@@ -1,14 +1,16 @@
 from base64 import b64encode
 
-from .request_maker import RequestMaker
-from .customer import Customer
-from .upload import Upload
+from rbm_mott_cli.request_maker import RequestMaker
+from .mgmt_customer import Customer
+from .mgmt_upload import Upload
+
+# https://mgmtapidocs.emp.ebsd.ericsson.net/
 
 
-class ApiClient:
+class ManagementApiClient:
     def __init__(self, api_key_id=None, api_key_secret=None, bearer_token=None):
         self._request_maker = RequestMaker()
-        self._request_maker.default_host = 'https://managementapi.emp.ebsd.ericsson.net/'
+        self._request_maker.default_host = 'https://management.api.redbee.live/'
 
         if api_key_id and api_key_secret:
             self._request_maker.default_headers = {'Content-Type': 'application/xml',

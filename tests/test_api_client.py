@@ -1,11 +1,11 @@
 
-from rbm_ott_cli.rbm_ott_api_client.api import ApiClient
+from rbm_mott_cli.mgmt_api_client.mgmt_api import ManagementApiClient
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
-api = ApiClient('5988fd37-8ef4-4c56-bfb9-8aecbdfa5d1e')
+api = ManagementApiClient('5988fd37-8ef4-4c56-bfb9-8aecbdfa5d1e')
 print(api.customer('Matt').business_unit('MattTV').asset().post_new_asset())
 # print(api.customer('Matt').business_unit('MattTV').product().get_products())
 # print(api.customer('Matt').business_unit('MattTV').product().find_product_by_name(name='free_product'))

@@ -1,7 +1,7 @@
 
-from .asset import Asset
-from .tag import Tag
-from .product import Product, ProductOffering
+from .mgmt_asset import Asset
+from .mgmt_tag import Tag
+from .mgmt_product import Product, ProductOffering
 
 
 class BusinessUnit:
