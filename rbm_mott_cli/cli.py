@@ -18,6 +18,9 @@ logging.basicConfig(level=logging.INFO)
 # RBM_MOTT env >> gets and prints environment variables
 # RBM_MOTT asset new -vf hello.mp4 -md "medium description" -ts "horror, 2010, musical"
 # RBM_MOTT asset new -vf hello.mp4 -md "medium description" -ts "horror, 2010, musical"
+# RBM_MOTT -cu Matt -bu MattTV asset --assetType TV_SHOW export --metadata C:/mydir
+# RBM_MOTT -cu Matt -bu MattTV asset --assetType TV_SHOW update --drm True --this-is-not-a-test
+
 
 
 @click.group()

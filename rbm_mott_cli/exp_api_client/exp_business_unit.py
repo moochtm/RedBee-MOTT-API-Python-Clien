@@ -1,6 +1,7 @@
 import logging
 import json
-# from .mgmt_asset import Asset
+
+from .exp_asset import Asset
 
 
 class BusinessUnit:
@@ -8,7 +9,7 @@ class BusinessUnit:
         self.id = business_unit
         self._customer = customer
         self._request_maker = request_maker
-        self.sessionToken = self._auth()
+        self._sessionToken = self._auth()
 
     def __enter__(self):
         return self
@@ -39,6 +40,5 @@ class BusinessUnit:
         response = json.loads(response.text.encode('utf-8'))
         return response['sessionToken']
 
-
-#    def asset(self, id=None):
-#        return Asset(id=id, customer=self._customer, business_unit=self.id, request_maker=self._request_maker)
+    def asset(self):
+        return Asset(customer=self._customer, business_unit=self.id, request_maker=self._request_maker)

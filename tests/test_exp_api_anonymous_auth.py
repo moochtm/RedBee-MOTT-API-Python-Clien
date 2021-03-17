@@ -6,4 +6,5 @@ logging.basicConfig(level=logging.DEBUG)
 
 exp_api = ExposureApiClient()
 with exp_api.customer('Matt').business_unit('MattTV') as bu:
-    print(bu.sessionToken)
+    for a in bu.asset().get_assets()['items']:
+        print(a['assetId'])
