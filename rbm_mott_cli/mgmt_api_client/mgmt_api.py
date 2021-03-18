@@ -1,6 +1,6 @@
 from base64 import b64encode
 
-from rbm_mott_cli.request_maker import RequestMaker
+from request_maker import RequestMaker
 from .mgmt_customer import Customer
 from .mgmt_upload import Upload
 
