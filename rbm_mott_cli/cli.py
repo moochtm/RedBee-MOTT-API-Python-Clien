@@ -5,6 +5,7 @@ import click  # https://pypi.org/project/click/
 from decouple import config  # https://pypi.org/project/python-decouple/
 # this package
 from mgmt_api_client.mgmt_api import ManagementApiClient
+from exp_api_client.exp_api import ExposureApiClient
 from request_maker import RequestMaker
 # logging
 import logging
@@ -21,6 +22,7 @@ logging.basicConfig(level=logging.INFO)
 # RBM_MOTT asset new -vf hello.mp4 -md "medium description" -ts "horror, 2010, musical"
 # RBM_MOTT asset new -vf hello.mp4 -md "medium description" -ts "horror, 2010, musical"
 # RBM_MOTT -cu Matt -bu MattTV products list - DONE!
+# RBM_MOTT -cu Matt -bu MattTV assets list - DONE!
 # RBM_MOTT -cu Matt -bu MattTV asset --assetType TV_SHOW export --metadata C:/mydir
 # RBM_MOTT -cu Matt -bu MattTV asset --assetType TV_SHOW update --drm True --this-is-not-a-test
 
@@ -33,9 +35,10 @@ def cli(ctx, cu, bu):
     logging.debug("CLI")
     ctx.obj = {'cu': cu,
                'bu': bu,
-               'api': ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
-                                          api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
-                                          request_maker=RequestMaker())}
+               'mgmt_api_client': ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
+                                                      api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
+                                                      request_maker=RequestMaker()),
+               'exp_api_client': ExposureApiClient(request_maker=RequestMaker())}
 
 
 @cli.command()
@@ -44,8 +47,24 @@ def env():
     logging.info("Listing Environment Variables...")
     logging.info('RBM_MOTT_API_KEY_ID: {0}'.format(API_KEY_ID))
     logging.info('RBM_MOTT_API_KEY_SECRET: {0}'.format(API_KEY_SECRET))
-    logging.info('RBM_MOTT_CUSTOMER: {0}'.format(CUSTOMER))
-    logging.info('RBM_MOTT_BUSINESS_UNIT: {0}'.format(BUSINESS_UNIT))
+
+
+@cli.group()
+def assets():
+    pass
+
+
+@assets.command("list")
+@click.pass_context
+# TODO: add parameter options
+def assets_list(ctx):
+    logging.info("ASSETS LIST")
+    if ctx.obj['bu'] is None:
+        pass
+        # response = ctx.obj['exp_api_client'].customer(ctx.obj['cu']).asset().get_assets()
+    else:
+        response = ctx.obj['exp_api_client'].customer(ctx.obj['cu']).business_unit(ctx.obj['bu']).asset().get_assets()
+    click.echo(response)
 
 
 @cli.group()
@@ -58,9 +77,10 @@ def products():
 def products_list(ctx):
     logging.info("PRODUCTS LIST")
     if ctx.obj['bu'] is None:
-        response = ctx.obj['api'].customer(ctx.obj['cu']).product().get_products()
+        response = ctx.obj['mgmt_api_client'].customer(ctx.obj['cu']).product().get_products()
     else:
-        response = ctx.obj['api'].customer(ctx.obj['cu']).business_unit(ctx.obj['bu']).product().get_products()
+        response = ctx.obj['mgmt_api_client'].customer(ctx.obj['cu']).business_unit(
+            ctx.obj['bu']).product().get_products()
     click.echo(response)
 
 

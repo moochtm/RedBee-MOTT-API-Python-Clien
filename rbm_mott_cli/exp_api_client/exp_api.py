@@ -1,14 +1,13 @@
 from base64 import b64encode
 
-from rbm_mott_cli.request_maker import RequestMaker
 from .exp_customer import Customer
 
 # https://apidocs.emp.ebsd.ericsson.net/
 
 
 class ExposureApiClient:
-    def __init__(self):
-        self._request_maker = RequestMaker()
+    def __init__(self, request_maker):
+        self._request_maker = request_maker
         self._request_maker.default_host = 'https://exposure.api.redbee.live:443/'
 
 # TODO: Exposure API uses different sort of authentication

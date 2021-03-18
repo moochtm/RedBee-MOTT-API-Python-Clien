@@ -44,8 +44,7 @@ class Asset:
                 final_response['items'].extend(response['items'])
                 final_response['pageSize'] = final_response['pageSize'] + response['pageSize']
 
-        print(final_response)
-        return final_response
+        return final_response['items']
 
 
 """
