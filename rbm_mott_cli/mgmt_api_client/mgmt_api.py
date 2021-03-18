@@ -1,6 +1,5 @@
 from base64 import b64encode
 
-from request_maker import RequestMaker
 from .mgmt_customer import Customer
 from .mgmt_upload import Upload
 
@@ -8,8 +7,8 @@ from .mgmt_upload import Upload
 
 
 class ManagementApiClient:
-    def __init__(self, api_key_id=None, api_key_secret=None, bearer_token=None):
-        self._request_maker = RequestMaker()
+    def __init__(self,  request_maker, api_key_id=None, api_key_secret=None, bearer_token=None,):
+        self._request_maker = request_maker
         self._request_maker.default_host = 'https://management.api.redbee.live/'
 
         if api_key_id and api_key_secret:

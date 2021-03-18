@@ -5,6 +5,7 @@ import click  # https://pypi.org/project/click/
 from decouple import config  # https://pypi.org/project/python-decouple/
 # this package
 from mgmt_api_client.mgmt_api import ManagementApiClient
+from request_maker import RequestMaker
 # logging
 import logging
 
@@ -33,7 +34,8 @@ def cli(ctx, cu, bu):
     ctx.obj = {'cu': cu,
                'bu': bu,
                'api': ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
-                                          api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None))}
+                                          api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
+                                          request_maker=RequestMaker())}
 
 
 @cli.command()
