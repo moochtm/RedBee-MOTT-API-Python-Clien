@@ -1,5 +1,5 @@
 # built in
-import os
+import os, json
 # third party
 import click  # https://pypi.org/project/click/
 from decouple import config  # https://pypi.org/project/python-decouple/
@@ -23,8 +23,8 @@ logging.basicConfig(level=logging.INFO)
 # RBM_MOTT asset new -vf hello.mp4 -md "medium description" -ts "horror, 2010, musical"
 # RBM_MOTT -cu Matt -bu MattTV products list - DONE!
 # RBM_MOTT -cu Matt -bu MattTV assets list - DONE!
-# RBM_MOTT -cu Matt -bu MattTV asset --assetType TV_SHOW export --metadata C:/mydir
-# RBM_MOTT -cu Matt -bu MattTV asset --assetType TV_SHOW update --drm True --this-is-not-a-test
+# RBM_MOTT -cu Matt -bu MattTV assets list --assetType TV_SHOW export --metadata --dir C:/mydir
+# RBM_MOTT -cu Matt -bu MattTV assets list --assetType TV_SHOW update --drm True --this-is-not-a-test
 
 
 @click.group()
@@ -38,7 +38,8 @@ def cli(ctx, cu, bu):
                'mgmt_api_client': ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
                                                       api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
                                                       request_maker=RequestMaker()),
-               'exp_api_client': ExposureApiClient(request_maker=RequestMaker())}
+               'exp_api_client': ExposureApiClient(request_maker=RequestMaker()),
+               'selection': []}
 
 
 @cli.command()
@@ -49,7 +50,7 @@ def env():
     logging.info('RBM_MOTT_API_KEY_SECRET: {0}'.format(API_KEY_SECRET))
 
 
-@cli.group()
+@cli.group(chain=True, invoke_without_command=True)
 def assets():
     pass
 
@@ -64,7 +65,35 @@ def assets_list(ctx):
         # response = ctx.obj['exp_api_client'].customer(ctx.obj['cu']).asset().get_assets()
     else:
         response = ctx.obj['exp_api_client'].customer(ctx.obj['cu']).business_unit(ctx.obj['bu']).asset().get_assets()
-    click.echo(response)
+    ctx.obj['selection'] = response
+    click.echo(ctx.obj['selection'])
+
+
+@assets.command("export")
+@click.option('-md', help="Export metadata")
+# @click.option('-i', help="Export images")
+@click.option('-d', help="Target folder for export")
+@click.pass_context
+# TODO: add parameter options
+def assets_export(ctx, md, d):
+    logging.info("ASSETS EXPORT")
+
+    # check and set target dir
+    if d:
+        if not os.path.exists(d):
+            try:
+                os.mkdirs(d)
+            except:
+                click.echo("Could not create dir: {0}".format(d))
+    else:
+        d = ""
+
+    for item in ctx.obj['selection']:
+        click.echo("Exporting Asset: {0}".format(item['assetId']))
+        export_path = os.path.join(d, "{0}.{1}".format(item['assetId'], 'json'))
+        with open(export_path, 'w', encoding='utf8') as f:
+            f.write(json.dumps(item, indent=4, ensure_ascii=False))
+            f.close()
 
 
 @cli.group()
