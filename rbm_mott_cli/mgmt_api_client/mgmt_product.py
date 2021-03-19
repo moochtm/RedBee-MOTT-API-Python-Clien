@@ -42,9 +42,9 @@ class ProductOffering:
 
     def get_product_offerings(self):
         raise NotImplementedError
-        if self._business_unit is not None:
+        if self._bu is not None:
             url = 'api/v1/customer/{0}/businessunit/{1}/productOfferings/'
-            url = url.format(self._customer, self._business_unit)
+            url = url.format(self._cu, self._bu)
         else:
             raise NotImplementedError('API Client does not support getting products at customer unit level')
             # url = 'api/v1/customer/{0}/productOfferings/'

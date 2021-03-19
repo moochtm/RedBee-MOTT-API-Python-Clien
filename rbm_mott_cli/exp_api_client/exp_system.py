@@ -1,51 +1,32 @@
 import logging
 import uuid
+import requests
 import json
 
 
-class Asset:
-    def __init__(self, customer, request_maker, business_unit=None) -> json:
-        self._customer = customer
-        self._business_unit = business_unit
+class System:
+    def __init__(self, request_maker, customer, business_unit=None) -> json:
+        self._cu = customer
+        self._bu = business_unit
         self._request_maker = request_maker
 
-    def get_assets(self, params: dict = None, get_all_assets: bool = True, get_all_fields: bool = True):
-        url = 'v1/customer/{0}/businessunit/{1}/content/asset'.format(self._customer, self._business_unit)
+    def system_config(self, params: dict = None):
+        url = 'v1/customer/{0}/businessunit/{1}/systemConfig'.format(self._cu, self._bu)
 
         # Build params
         if params is None:
             params = {}
-        if get_all_assets:
-            params.update({
-                'onlyPublished': False,
-                'includeTvShow': True
-            })
-        if get_all_fields:
-            params.update({
-                'fieldSet': 'ALL'
-            })
         default_params = {
-            'pageNumber': 1,
-            'pageSize': 200,
-            'includeFields': 'medias'
+            'paymentMethodPreview': True
         }
         final_params = {**default_params, **params}
 
-        # get initial response
+        # get response
         response = self._request_maker.get(url=url, params=final_params)
         response = json.loads(response.text.encode('utf8'))
-        final_response = response
+        print(response)
 
-        if get_all_assets:
-            while response['pageNumber'] * response['pageSize'] < response['totalCount']:
-                print(final_params)
-                final_params['pageNumber'] = final_params['pageNumber'] + 1
-                response = self._request_maker.get(url=url, params=final_params)
-                response = json.loads(response.text.encode('utf8'))
-                final_response['items'].extend(response['items'])
-                final_response['pageSize'] = final_response['pageSize'] + response['pageSize']
-
-        return final_response['items']
+        return response
 
 
 """

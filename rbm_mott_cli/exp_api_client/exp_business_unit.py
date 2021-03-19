@@ -2,6 +2,8 @@ import logging
 import json
 
 from .exp_asset import Asset
+from .exp_entitlement import Entitlement
+from .exp_system import System
 
 
 class BusinessUnit:
@@ -38,7 +40,13 @@ class BusinessUnit:
             raise PermissionError("Auth error: response code is not 200.")
 
         response = json.loads(response.text.encode('utf-8'))
-        return response['sessionToken']
+        self._request_maker.default_headers.update({'Authorization': 'Bearer %s' % response['sessionToken']})
 
     def asset(self):
         return Asset(customer=self._customer, business_unit=self.id, request_maker=self._request_maker)
+
+    def entitlement(self):
+        return Entitlement(customer=self._customer, business_unit=self.id, request_maker=self._request_maker)
+
+    def system(self):
+        return System(customer=self._customer, business_unit=self.id, request_maker=self._request_maker)

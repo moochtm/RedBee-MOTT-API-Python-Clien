@@ -1,13 +1,16 @@
 from base64 import b64encode
 
-from .mgmt_customer import Customer
 from .mgmt_upload import Upload
+from .mgmt_asset import Asset
+from .mgmt_tag import Tag
+from .mgmt_product import Product, ProductOffering
+
 
 # https://mgmtapidocs.emp.ebsd.ericsson.net/
 
 
 class ManagementApiClient:
-    def __init__(self,  request_maker, api_key_id=None, api_key_secret=None, bearer_token=None,):
+    def __init__(self,  request_maker, cu, bu, api_key_id=None, api_key_secret=None, bearer_token=None,):
         self._request_maker = request_maker
         self._request_maker.default_host = 'https://management.api.redbee.live/'
 
@@ -29,11 +32,20 @@ class ManagementApiClient:
 
     # OBJECTS
 
-    def customer(self, id):
-        return Customer(customer_id=id, request_maker=self._request_maker)
-
     def upload(self, path):
         return Upload(path=path, request_maker=self._request_maker)
+
+    def tag(self):
+        return Tag(customer=self._cu, business_unit=self._bu, request_maker=self._request_maker)
+
+    def product(self):
+        return Product(customer=self._cu, business_unit=self._bu, request_maker=self._request_maker)
+
+    def product_offering(self):
+        return ProductOffering(customer=self._cu, business_unit=self._bu, request_maker=self._request_maker)
+
+    def asset(self):
+        return Asset(customer=self._cu, business_unit=self._bu, request_maker=self._request_maker)
 
 
 def get_auth_header(username: str, password: str) -> str:

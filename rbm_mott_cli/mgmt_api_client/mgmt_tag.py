@@ -62,12 +62,12 @@ class Tag:
 
     def get_tag(self, tag_id):
         raise NotImplementedError
-        if self._business_unit is None:
+        if self._bu is None:
             url = 'v1/customer/{0}/tag/{1}'
-            url = url.format(self._customer, tag_id)
+            url = url.format(self._cu, tag_id)
         else:
             url = 'v1/customer/{0}/businessunit/{1}/tag/{2}'
-            url = url.format(self._customer, self._business_unit, tag_id)
+            url = url.format(self._cu, self._bu, tag_id)
 
         response = self._request_maker.get(url=url)
         return response

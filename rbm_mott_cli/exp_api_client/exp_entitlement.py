@@ -1,51 +1,42 @@
 import logging
 import uuid
+import requests
 import json
 
 
-class Asset:
+class Entitlement:
     def __init__(self, customer, request_maker, business_unit=None) -> json:
         self._customer = customer
         self._business_unit = business_unit
         self._request_maker = request_maker
 
-    def get_assets(self, params: dict = None, get_all_assets: bool = True, get_all_fields: bool = True):
-        url = 'v1/customer/{0}/businessunit/{1}/content/asset'.format(self._customer, self._business_unit)
+    def asset_play_request(self, asset_id, params: dict = None, get_all_assets: bool = True, get_all_fields: bool = True):
+        url = 'v2/customer/{0}/businessunit/{1}/entitlement/{2}/play'.format(self._customer,
+                                                                                                         self._business_unit,
+                                                                                                         asset_id)
 
         # Build params
         if params is None:
             params = {}
-        if get_all_assets:
-            params.update({
-                'onlyPublished': False,
-                'includeTvShow': True
-            })
-        if get_all_fields:
-            params.update({
-                'fieldSet': 'ALL'
-            })
-        default_params = {
-            'pageNumber': 1,
-            'pageSize': 200,
-            'includeFields': 'medias'
-        }
+        default_params = {}
         final_params = {**default_params, **params}
 
         # get initial response
         response = self._request_maker.get(url=url, params=final_params)
         response = json.loads(response.text.encode('utf8'))
-        final_response = response
+        print(response)
 
-        if get_all_assets:
-            while response['pageNumber'] * response['pageSize'] < response['totalCount']:
-                print(final_params)
-                final_params['pageNumber'] = final_params['pageNumber'] + 1
-                response = self._request_maker.get(url=url, params=final_params)
-                response = json.loads(response.text.encode('utf8'))
-                final_response['items'].extend(response['items'])
-                final_response['pageSize'] = final_response['pageSize'] + response['pageSize']
+        # TODO: need to get example of ingesting pre-transcoded assets.
+        hls = [f for f in response['formats'] if f['format'] == 'HLS'][0]
+        print(hls)
+        self.get_HLS_manifest(mediaLocator=hls['mediaLocator'])
 
-        return final_response['items']
+        return
+
+
+    def get_HLS_manifest(self, mediaLocator):
+        response = requests.get(url=mediaLocator)
+        print(response.text)
 
 
 """
