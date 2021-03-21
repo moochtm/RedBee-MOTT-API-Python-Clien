@@ -50,6 +50,6 @@ class ProductOffering:
             # url = 'api/v1/customer/{0}/productOfferings/'
             # url = url.format(self._customer)
 
-        response = json.loads(self._request_maker.get(url=url).text.encode('utf-8'))
+        response = json.loads(self._rm.get(url=url).text.encode('utf-8'))
         return response
 

@@ -9,7 +9,7 @@ class RequestMaker:
         self.default_headers = {}
         self.default_params = {}
 
-    def __request(self, method='GET', host='', url='', headers={}, params={}, data=None):
+    def __request(self, method='GET', host='', url='', headers={}, params={}, data=None, json=None):
 
         if host == '':
             host = self.default_host
@@ -24,8 +24,9 @@ class RequestMaker:
         logging.debug('headers = {0}'.format(headers))
         logging.debug('params = {0}'.format(params))
         logging.debug('data = {0}'.format(data))
+        logging.debug('json = {0}'.format(json))
 
-        response = requests.request(method, url, headers=headers, params=params, data=data)
+        response = requests.request(method, url, headers=headers, params=params, data=data, json=json)
 
         logging.debug('response.status_code = {0}'.format(response.status_code))
         logging.debug('response.headers = {0}'.format(response.headers))
@@ -34,9 +35,13 @@ class RequestMaker:
         return response
 
     def get(self, **kwargs):
-        response = self.__request(**kwargs)
-        return response
+        return self.__request(**kwargs)
 
     def post(self, **kwargs):
-        response = self.__request(method='POST', **kwargs)
-        return response
+        return self.__request(method='POST', **kwargs)
+
+    def put(self, **kwargs):
+        return self.__request(method='PUT', **kwargs)
+
+    def delete(self, **kwargs):
+        return self.__request(method='DELETE', **kwargs)

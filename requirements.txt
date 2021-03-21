@@ -4,3 +4,7 @@ requests~=2.25.1
 python-status
 python-slugify
 click~=7.1.2
+xmljson~=0.2.1
+lxml~=4.6.2
+Jinja2~=2.11.3
+Pygments~=2.8.1

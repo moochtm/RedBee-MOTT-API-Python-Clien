@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1">
+    <data>
+        {% for asset in data.assets %}
+        <asset>
+            <id>{{ asset.id }}</id>
+            <provider>{{ asset.provider }}</provider>
+            <productionYear>{{ asset.production_year }}</productionYear>
+            <titleList>
+                {% for title in asset.title_list %}
+                <title language="{{ title.language }}">{{ title.text }}</title>
+                {% endfor %}
+            </titleList>
+            <descriptionList>
+                {% for d in asset.description_list %}
+                <description language="{{ d.language }}" length="{{ d.len }}">{{ d.text }}</description>
+                {% endfor %}
+            </descriptionList>
+            <tagList>
+                {% for t in asset.tag_list %}
+                <tagIdRef>t.tag_id_ref</tagIdRef>
+                {% endfor %}
+            </tagList>
+            <imageList>
+                {% for i in asset.image_list %}
+                <image language="{{ i.lang }}">
+                    <id>{{ i.id }}</id>
+                    <url>{{ i.url }}</url>
+                    <width>{{ i.width }}</width>
+                    <height>{{ i.height }}</height>
+                    <purpose>{{ i.purpose }}</purpose>
+                    <orientation>{{ i.orientation }}</orientation>
+                </image>
+                {% endfor %}
+            </imageList>
+            <parentalRatingList>
+                {% for pr in asset.parental_rating_list %}
+                <parentalRating>
+                    <rating>{{ pr.rating }}</rating>
+                    <scheme>{{ pr.scheme }}</scheme>
+                    <country>{{ pr.country }}</country>
+                </parentalRating>
+                {% endfor %}
+            </parentalRatingList>
+            <assetType>{{ asset.asset_type }}</assetType>
+            <seriesId>{{ asset.series_id }}</seriesId>
+            <seasonId>{{ asset.season_id }}</seasonId>
+            <episodeNumber>{{ asset.episode_number }}</episodeNumber>
+        </asset>
+        {% endfor %}
+        <material>
+            {% for mref in data.material.material_refs %}
+            <materialRef>{{ mref.text }}
+                <audioList>
+                    {% for aud in mref.audio_list %}
+                    <audio channels="{{ aud.chs }}" language="{{ aud.lang }}" order="{{ aud.order }}"/>
+                    {% endfor %}
+                </audioList>
+                <DRMEnabled>{{ mref.drm_enabled }}</DRMEnabled>
+                <subtitleList>
+                    {% for sub in mref.subtitle_list %}
+                    <subtitle language="{{ sub.lang }}">{{ sub.text }}</subtitle>
+                    {% endfor %}
+                </subtitleList>
+            </materialRef>
+            {% endfor %}
+        </material>
+        <publicationList>
+            {% for pub in data.publication_list %}
+            <publication>
+                <id>{{ pub.asset_id }}</id>
+                <startTime>{{ pub.start_time }}</startTime>
+                <endTime>{{ pub.end_time }}</endTime>
+                <publishTime>{{ pub.publish_time }}</publishTime>
+                <publicationRights>
+                    <productList>
+                        {% for prod in pub.publication_rights.product_list %}
+                        <product>{{ prod.id }}</product>
+                        {% endfor %}
+                    </productList>
+                </publicationRights>
+            </publication>
+            {% endfor %}
+        </publicationList>
+    </data>
+</publish-metadata>
+
+<!-- EXAMPLES ...
+
+<?xml version="1.0" encoding="UTF-8"?>
+<publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1 publish-metadata-1.0.xsd">
+    <data>
+        <asset>
+            <id>{{assetId}}</id>
+            <provider>provider1</provider>
+            <productionYear>2017</productionYear>
+            <titleList>
+                <title language="en">Title for {{assetId}} in English</title>
+                <title language="sv">Title for {{assetId}} in Swedish</title>
+            </titleList>
+            <descriptionList>
+                <description language="en" length="short">A short description in English</description>
+                <description language="sv" length="short">A short description in Swedish</description>
+                <description language="en" length="medium">A medium description in English</description>
+                <description language="sv" length="medium">A medium description in Swedish</description>
+                <description language="en" length="long">A long description in English</description>
+                <description language="sv" length="long">A long description in Swedish</description>
+            </descriptionList>
+            <tagList>
+                <tagIdRef>genre_drama</tagIdRef>
+                <tagIdRef>genre_thriller</tagIdRef>
+            </tagList>
+            <imageList>
+            	 <image language="sv">
+                    <id></id>
+                    <url>http://myhost.se/myPath/MyImageInSv.jpg</url>
+                    <width>1280</width>
+                    <height>720</height>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+                <image language="en">
+                    <id>image2</id>
+                    <url>http://myhost.se/myPath/MyImageInEn.jpg</url>
+                    <width>1280</width>
+                    <height>720</height>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+            </imageList>
+            <parentalRatingList>
+                <parentalRating>
+                    <rating>15</rating>
+                    <scheme>age</scheme>
+                    <country>EN</country>
+                </parentalRating>
+                <parentalRating>
+                    <rating>15</rating>
+                    <scheme>age</scheme>
+                    <country>SE</country>
+                </parentalRating>
+            </parentalRatingList>
+            <assetType>movie</assetType>
+        </asset>
+        <material>
+            <materialRef>
+                https://emptestdata.blob.core.windows.net/sources/Sintel/sintel.mp4
+                <audioList>
+    				<audio channels="2" language="da" order="LR"/>
+    				<audio channels="2s-2" language="fi" order="LR"/>
+    				<audio channels="4s-2" language="no" order="LR"/>
+    				<audio channels="6s-2" language="sv" order="LR"/>
+				</audioList>
+            </materialRef>
+            <DRMEnabled>true</DRMEnabled>
+            <subtitleList>
+                <subtitle language="en">https://emptestdata.blob.core.windows.net/sources/Sintel/sintel_en.vtt</subtitle>
+                <subtitle language="sv">https://emptestdata.blob.core.windows.net/sources/Sintel/sintel_se.vtt</subtitle>
+            </subtitleList>
+        </material>
+        <publicationList>
+            <publication>
+                <id>{{assetId}}</id>
+                <startTime>2020-01-24T00:00:00.000Z</startTime>
+                <endTime>2025-01-24T00:00:00.000Z</endTime>
+                <publishTime>2019-12-01T00:00:00.000Z</publishTime>
+                <publicationRights>
+                    <productList>
+                        <product>{{productId}}</product>
+                    </productList>
+                </publicationRights>
+            </publication>
+        </publicationList>
+        <assetType>episode</assetType>
+        <seriesId>{{seriesId}}</seriesId>
+        <seasonId>{{seasonId}}</seasonId>
+        <episodeNumber>{{episodeNumber}}</episodeNumber>
+    </data>
+</publish-metadata>
+"""
+-->

@@ -47,6 +47,21 @@ class Asset:
 
         return final_response['items']
 
+    def get_asset(self, asset_id, params: dict = None):
+        url = 'v1/customer/{0}/businessunit/{1}/content/asset/{2}'.format(self._customer, self._business_unit, asset_id)
+
+        # Build params
+        if params is None:
+            params = {}
+        default_params = {
+        }
+        final_params = {**default_params, **params}
+
+        # get initial response
+        response = self._request_maker.get(url=url, params=final_params)
+        response = json.loads(response.text.encode('utf8'))
+        return response
+
 
 """
 DEBUG:root:response.text = {

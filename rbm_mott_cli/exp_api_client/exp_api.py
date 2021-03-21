@@ -5,6 +5,7 @@ import json
 from .exp_asset import Asset
 from .exp_entitlement import Entitlement
 from .exp_system import System
+from .exp_tag import Tag
 
 # https://apidocs.emp.ebsd.ericsson.net/
 
@@ -60,3 +61,6 @@ class ExposureApiClient:
 
     def system(self):
         return System(customer=self._cu, business_unit=self._bu, request_maker=self._request_maker)
+
+    def tag(self):
+        return Tag(customer=self._cu, business_unit=self._bu, request_maker=self._request_maker)

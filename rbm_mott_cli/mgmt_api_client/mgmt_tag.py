@@ -69,7 +69,7 @@ class Tag:
             url = 'v1/customer/{0}/businessunit/{1}/tag/{2}'
             url = url.format(self._cu, self._bu, tag_id)
 
-        response = self._request_maker.get(url=url)
+        response = self._rm.get(url=url)
         return response
 
 """
