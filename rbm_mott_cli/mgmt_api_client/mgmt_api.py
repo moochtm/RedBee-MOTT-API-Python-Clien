@@ -20,6 +20,8 @@ class ManagementApiClient:
         else:
             raise ValueError("No authentication info provided. API Key ID and Secret required.")
 
+        test_call = self.get_product()
+
 #########################################################################
 # CLASS HELPER FUNCTIONS
 #########################################################################
@@ -76,7 +78,6 @@ class ManagementApiClient:
         data = {'tagRefs': [tag_id]}
         self._request_maker.post(url=url, json=data)
 
-
 #########################################################################
 # MATERIALS
 #########################################################################
@@ -95,7 +96,9 @@ class ManagementApiClient:
         url = '/v1/{}/product'.format(self._cu_bu_path())
         response = self._request_maker.get(url=url)
         if response.status_code != 200:
-            return {}
+            msg = "Status Code: {}, Message: {}".format(response.json()['httpCode'],
+                                                        response.json()['message'])
+            raise RuntimeError(msg)
         return response.json()
 
 

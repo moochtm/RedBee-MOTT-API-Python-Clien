@@ -35,6 +35,17 @@ logging.basicConfig(level=logging.INFO)
 @click.pass_context
 def cli(ctx, cu, bu):
     logging.debug("CLI")
+    try:
+        mgmt_client = ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
+                                          api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
+                                          request_maker=RequestMaker(),
+                                          cu=cu,
+                                          bu=bu)
+    except Exception as e:
+        click.echo(e)
+        click.echo("Quitting due to error.")
+        quit()
+
     ctx.obj = {'mgmt_api_client': ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
                                                       api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
                                                       request_maker=RequestMaker(),
@@ -62,7 +73,7 @@ def products():
 @click.pass_context
 def products_get(ctx):
     # get initial response
-    response = ctx.obj['mgmt_api_client'].get_material()
+    response = ctx.obj['mgmt_api_client'].get_product()
 
     # report what happened
     click.echo('Got {} products/s'.format(len(response)))
