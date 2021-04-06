@@ -1,6 +1,7 @@
 import requests
 import urllib
 import logging
+logger = logging.getLogger(__name__)
 
 
 class RequestMaker:

@@ -26,7 +26,7 @@ class SilentUndefined(Undefined):
 
 
 if __name__ == '__main__':
-    template_text = open('publish_metadata_template.xml', 'r').read()
+    template_text = open('/Users/home/Downloads/youtube-dl/youtube_mott_metadata_template.xml', 'r').read()
     env = Environment()
     env.undefined = SilentUndefined
     j2t = env.from_string(template_text)
@@ -36,7 +36,7 @@ if __name__ == '__main__':
             'title_list': [{
                 'text': 'Title Text'
             }],
-            'asset_type': 'MOVIE'
+            'asset_type': 'movie'
         }],
         'material': {
             'material_refs': [{
@@ -44,10 +44,34 @@ if __name__ == '__main__':
             }]
         }
     }
+    data = {
+        'asset': {
+            'id': 'jeff'
+        }
+    }
 
     render = j2t.render(data=data)
     print(render)
-    parser = etree.XMLParser(remove_blank_text=True)
+    # print(render)
+    parser = etree.XMLParser(remove_blank_text=True, remove_comments=True)
     root = etree.fromstring(bytes(render, encoding='utf8'), parser=parser)
+
+    # strip whitespace from text and tail
+    for elem in root.iter('*'):
+        if elem.text is not None:
+            elem.text = elem.text.strip()
+        if elem.tail is not None:
+            elem.tail = elem.tail.strip()
+        if elem.text is not None and not elem.text.strip():
+            elem.text = None
+        # remove attribute if empty
+        for key in elem.keys():
+            if not elem.get(key):
+                elem.attrib.pop(key)
+
+    # remove empty nodes
+    while len(root.xpath(".//*[not(node())]")) > 0:
+        for element in root.xpath(".//*[not(node())]"):
+            element.getparent().remove(element)
 
     print(etree.tostring(root, pretty_print=True).decode())

@@ -9,16 +9,15 @@ https://mgmtapidocs.emp.ebsd.ericsson.net/
 
 
 class ManagementApiClient:
-    def __init__(self,  request_maker, cu, bu, api_key_id=None, api_key_secret=None):
+    def __init__(self,  request_maker, cu, bu, api_key_id, api_key_secret):
         self._request_maker = request_maker
         self._request_maker.default_host = 'https://management.api.redbee.live'
         self._cu = cu
         self._bu = bu
 
-        if api_key_id and api_key_secret:
-            self._request_maker.default_headers = {'Authorization': get_auth_header(api_key_id, api_key_secret)}
-        else:
-            raise ValueError("No authentication info provided. API Key ID and Secret required.")
+        self._request_maker.default_headers = {
+            'Authorization': get_auth_header(api_key_id, api_key_secret)
+        }
 
         test_call = self.get_product()
 
@@ -41,6 +40,38 @@ class ManagementApiClient:
 #########################################################################
 
 #########################################################################
+# TESTING
+#########################################################################
+
+    def test(self):
+        url = '/v1/{}/tag'.format(self._cu_bu_path())
+        response = self._request_maker.get(url=url)
+
+#########################################################################
+# INGEST
+#########################################################################
+
+    def post_asset(self, body):
+        url = '/v1/{}/asset'.format(self._cu_bu_path())
+
+        response = self._request_maker.post(url=url, data=body)
+        if response.status_code != 200:
+            msg = "Status Code: {}, Message: {}".format(response.json()['httpCode'],
+                                                        response.json()['message'])
+            raise RuntimeError(msg)
+        return response.json()
+
+    def delete_asset(self, asset_id):
+        url = '/v1/{}/asset/{}'.format(self._cu_bu_path(), asset_id)
+
+        response = self._request_maker.delete(url=url)
+        if response.status_code >= 300:
+            msg = "Status Code: {}, Message: {}".format(response.json()['httpCode'],
+                                                        response.json()['message'])
+            raise RuntimeError(msg)
+        return response.json()
+
+#########################################################################
 # ASSETS
 #########################################################################
 
@@ -52,10 +83,17 @@ class ManagementApiClient:
             params = {}
         default_params = {
             'pageNumber': 1,
-            'pageSize': 1
+            'pageSize': 1,
         }
         final_params = {**default_params, **params}
         response = self._request_maker.get(url=url, params=params)
+        if response.status_code != 200:
+            return {}
+        return response.json()
+
+    def get_asset(self, asset_id):
+        url = '/v1/{}/asset/{}'.format(self._cu_bu_path(), asset_id)
+        response = self._request_maker.get(url=url)
         if response.status_code != 200:
             return {}
         return response.json()
@@ -67,14 +105,25 @@ class ManagementApiClient:
             return {}
         return response.json()
 
-    def remove_asset_tag(self, asset_id, tag_id):
+    def get_asset_publications(self, asset_id):
+        url = '/v1/{}/asset/{}/publication'.format(self._cu_bu_path(), asset_id)
+        response = self._request_maker.get(url=url)
+        if response.status_code != 200:
+            return {}
+        return response.json()
+
+    def delete_asset_tag(self, asset_id, tag_id):
         url = '/v1/{}/asset/{}/tag/{}'.format(self._cu_bu_path(), asset_id, tag_id)
         self._request_maker.delete(url=url)
 
     def add_asset_tag(self, asset_id, tag_id):
-        raise NotImplementedError
         # TODO get this working!
+        #url = '/v1/{}/asset/{}/tag/{}'.format(self._cu_bu_path(), asset_id, tag_id)
+        #data = {}
+        #self._request_maker.post(url=url)
+        #return
         url = '/v1/{}/asset/{}/tag?mergeMode=ADD'.format(self._cu_bu_path(), asset_id)
+        #url = '/v1/{}/asset/{}/tag'.format(self._cu_bu_path(), asset_id)
         data = {'tagRefs': [tag_id]}
         self._request_maker.post(url=url, json=data)
 
@@ -94,6 +143,33 @@ class ManagementApiClient:
 
     def get_product(self):
         url = '/v1/{}/product'.format(self._cu_bu_path())
+        response = self._request_maker.get(url=url)
+        if response.status_code != 200:
+            msg = "Status Code: {}, Message: {}".format(response.json()['httpCode'],
+                                                        response.json()['message'])
+            raise RuntimeError(msg)
+        return response.json()
+
+#########################################################################
+# PUBLICATIONS
+#########################################################################
+
+    def get_publications(self):
+        url = '/v1/{}/publication'.format(self._cu_bu_path())
+        response = self._request_maker.get(url=url)
+        if response.status_code != 200:
+            msg = "Status Code: {}, Message: {}".format(response.json()['httpCode'],
+                                                        response.json()['message'])
+            raise RuntimeError(msg)
+        return response.json()
+
+
+#########################################################################
+# SERIES
+#########################################################################
+
+    def get_series(self):
+        url = '/v1/{}/series'.format(self._cu_bu_path())
         response = self._request_maker.get(url=url)
         if response.status_code != 200:
             msg = "Status Code: {}, Message: {}".format(response.json()['httpCode'],

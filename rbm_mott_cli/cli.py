@@ -1,18 +1,33 @@
 # built in
-import os, json, time
+import json
+import logging
+import os
+from datetime import datetime
+
 # third party
+from click_shell import shell  # https://click-shell.readthedocs.io/en/latest/index.html
 import click  # https://pypi.org/project/click/
 from decouple import config  # https://pypi.org/project/python-decouple/
-from click_shell import shell  # https://click-shell.readthedocs.io/en/latest/index.html
+
 # this package
 from mgmt_api_client.mgmt_api import ManagementApiClient
 from exp_api_client.exp_api import ExposureApiClient
+from utils.pprinting import pprint_and_color
+import utils.ingest_metadata as ingest_metadata
 from request_maker import RequestMaker
-from helpers import pprint_json_obj, pprint_and_color_json_obj
-# logging
-import logging
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    '%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.ERROR)
+stream_handler.setFormatter(formatter)
+logger.addHandler(stream_handler)
+
+separator_length = 60
+major_separator = ''.join([char*separator_length for char in ['=']])
+minor_separator = ''.join([char*separator_length for char in ['-']])
 
 ##########################################################################################
 # CLI built using click
@@ -28,67 +43,108 @@ logging.basicConfig(level=logging.INFO)
 # RBM_MOTT -cu Matt -bu MattTV assets list --assetType TV_SHOW update --drm True --this-is-not-a-test
 
 
-@shell(prompt='mott > ', intro='Starting RMB MOTT API client...')
+@shell(prompt='mott > ')
 # @click.group() is replaced by @shell
+@click.option('--mgmt-api-key-id', help="Management API Key ID", envvar='MGMT_API_KEY_ID', required=True)
+@click.option('--mgmt-api-key-secret', help="Management API Key ID", envvar='MGMT_API_KEY_SECRET', required=True)
+@click.option('--debug', help="Enable debug logging", envvar='DEBUG', is_flag=True)
+@click.option('--working-dir', help="Working directory for the CLI", envvar='WORKING_DIR', default='.')
+@click.option('--write-log', help="Log to file in Working Dir", envvar='WRITE_LOG', is_flag=True)
+# @click.option('--sim/--no-sim', help="Simulation mode. Only executes GET calls.", is_flag=True)
 @click.option('-cu', help="Name of Managed OTT Customer", required=True)
 @click.option('-bu', help="Name of Managed OTT Business Unit")
 @click.pass_context
-def cli(ctx, cu, bu):
-    logging.debug("CLI")
+def cli(ctx, mgmt_api_key_id, mgmt_api_key_secret, debug, working_dir, write_log, cu, bu):
+
+    echo(major_separator)
+    # setup working directory
+    if not os.path.exists(working_dir):
+        echo(f"Working Dir does not exist: {working_dir}", logging.ERROR)
+        echo("Sorry. Need to quit.")
+        quit()
+    working_dir = os.path.join(working_dir, 'MOTT_CLI_SESSION_{0}'.format(
+        datetime.now().strftime("%Y-%m-%d-%H-%M-%S")))
     try:
-        mgmt_client = ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
-                                          api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
+        os.makedirs(working_dir)
+    except Exception as e:
+        echo(e, logging.ERROR)
+        echo("Sorry. Need to quit.")
+        quit()
+
+    echo(f"Working Dir: {working_dir}")
+
+    # setup logging
+    # if write-log enabled, enable writing log to working dir
+    if write_log:
+        log_path = os.path.join(working_dir, 'mott_cli.log')
+        file_handler = logging.FileHandler(log_path)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(logging.INFO)
+        if debug:
+            file_handler.setLevel(logging.DEBUG)
+        logger.addHandler(file_handler)
+        echo(f"Writing log file to: {log_path}")
+
+    # create mgmt api client
+    try:
+        mgmt_client = ManagementApiClient(api_key_id=mgmt_api_key_id,
+                                          api_key_secret=mgmt_api_key_secret,
                                           request_maker=RequestMaker(),
                                           cu=cu,
                                           bu=bu)
     except Exception as e:
-        click.echo(e)
-        click.echo("Quitting due to error.")
+        echo(e, logging.ERROR)
+        echo("Sorry. Need to quit.")
         quit()
 
-    ctx.obj = {'mgmt_api_client': ManagementApiClient(api_key_id=config('RBM_MOTT_API_KEY_ID', default=None),
-                                                      api_key_secret=config('RBM_MOTT_API_KEY_SECRET', default=None),
-                                                      request_maker=RequestMaker(),
-                                                      cu=cu,
-                                                      bu=bu),
+    # create context object that gets passed between command functions
+    ctx.obj = {'mgmt_api_client': mgmt_client,
                'exp_api_client': ExposureApiClient(request_maker=RequestMaker(),
                                                    cu=cu,
-                                                   bu=bu)}
+                                                   bu=bu),
+               'working_dir': working_dir}
 
+
+#########################################################################
+# TESTING
+#########################################################################
 
 @cli.command()
-def env():
-    logging.debug("ENV")
-    logging.info("Listing Environment Variables...")
-    click.echo('RBM_MOTT_API_KEY_ID: {0}'.format(API_KEY_ID))
-    click.echo('RBM_MOTT_API_KEY_SECRET: {0}'.format(API_KEY_SECRET))
+@click.pass_context
+def test(ctx):
+    response = ctx.obj['exp_api_client'].tag().get_tags()
 
+
+#########################################################################
+# PRODUCTS
+#########################################################################
 
 @cli.group(chain=True)
-def products():
+def product():
     pass
 
 
-@products.command("get")
+@product.command("get")
 @click.pass_context
-def products_get(ctx):
+def product_get(ctx):
     # get initial response
     response = ctx.obj['mgmt_api_client'].get_product()
 
     # report what happened
-    click.echo('Got {} products/s'.format(len(response)))
+    click.echo('Got {} products/s. Stored in context'.format(len(response)))
     # store only the items (the assets) in click context
     ctx.obj['products'] = response
 
 
-@products.command("print")
+@product.command("print")
 @click.option('-i', help='Fields to include.', multiple=True)
 @click.option('-e', help='Fields to exclude.', multiple=True)
 @click.pass_context
-def products_print(ctx, i, e):
+def product_print(ctx, i, e):
     # check if any details stored.
     if 'products' not in ctx.obj.keys():
-        click.echo('Nothing to print. No details stored.')
+        echo('Nothing to print. No details stored.')
         return
     items = ctx.obj['products']
     if type(items) is not list:
@@ -96,7 +152,7 @@ def products_print(ctx, i, e):
 
     # if no filters then print everything
     if not i and not e:
-        click.echo(pprint_and_color_json_obj(items))
+        echo(items)
         return
 
     # continue if there are filters
@@ -106,20 +162,59 @@ def products_print(ctx, i, e):
     i.append('id')
     for item in items:
         filtered_items.append({key: value for (key, value) in item.items() if key in i})
-    click.echo(pprint_and_color_json_obj(filtered_items))
+    echo(filtered_items)
     return
 
 
+#########################################################################
+# ASSETS
+#########################################################################
+
 @cli.group(chain=True)
-def assets():
+def asset():
     pass
 
 
-@assets.command("get")
+@asset.command("ingest")
+@click.option('-i', help="Local input file for ingest", type=click.File('r', encoding='utf8'), required=True)
+@click.option('-t', help="Local template file for ingest", type=click.File('r', encoding='utf8'), required=True)
+@click.option('-u', help="Base URL to add to file locations")
+@click.option('-e', help="Things to exclude from injest, e.g. material, tag", multiple=True)
+@click.option('-l', help="Default language, 2 letter code", default='en')
+@click.pass_context
+def assets_ingest(ctx, i, t, u, e, l):
+    echo("Assets Ingest")
+    # create data object to render template
+    asset_json = json.load(i)
+    data = {
+        'base_url': u,
+        'asset': asset_json,
+        'exclude': e,
+        'default_language': l
+    }
+
+    # create metadata
+    metadata = ingest_metadata.create(data, template_file=t)
+    ingest_metadata_fn = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-")
+    ingest_metadata_fn += os.path.splitext(os.path.basename(i.name))[0] + '.xml'
+
+    # save metadata to file
+    with open(os.path.join(ctx.obj['working_dir'], ingest_metadata_fn), 'w', encoding='utf8') as f:
+        f.write(metadata)
+        echo("Saved ingest metadata: {}".format(f.name))
+        f.close()
+
+    # get response
+    response = ctx.obj['mgmt_api_client'].post_asset(metadata)
+    echo("Request response:")
+    echo(response)
+
+
+@asset.command("get")
 @click.option('-m', '--inc-materials', help="Include asset materials", type=bool)
 @click.option('-t', '--tag-id', help="Tag ID with which to filter assets", multiple=True)
 @click.pass_context
-def assets_get(ctx, inc_materials, tag_id):
+def asset_get(ctx, inc_materials, tag_id):
     # setup params for API call
     params = {}
     if tag_id:
@@ -147,9 +242,11 @@ def assets_get(ctx, inc_materials, tag_id):
 
     response_buffer = response_buffer['items']
 
-    inc_materials = True
+    # optionally add Material details to each asset found
     if inc_materials:
+        # work out number of tasks for progress bar
         tasks = len(response_buffer)
+
         label = "Getting materials for {} assets...".format(tasks)
         with click.progressbar(length=tasks,
                                label=label,
@@ -162,27 +259,28 @@ def assets_get(ctx, inc_materials, tag_id):
                 progress.update(1)
 
     # report what happened
-    click.echo('Got {} asset/s'.format(len(response_buffer)))
+    echo('Stored {} asset/s in context'.format(len(response_buffer)))
     # store only the items (the assets) in click context
     ctx.obj['assets'] = response_buffer
 
 
-@assets.command("print")
+@asset.command("print")
 @click.option('-i', help='Fields to include.', multiple=True)
 @click.option('-e', help='Fields to exclude.', multiple=True)
 @click.pass_context
-def assets_print(ctx, i, e):
+def asset_print(ctx, i, e):
     # check if any asset details stored.
     if 'assets' not in ctx.obj.keys():
-        click.echo('Nothing to print. No asset details stored.')
+        echo('Nothing to print. No asset details stored.')
         return
+
     assets = ctx.obj['assets']
     if type(assets) is not list:
         assets = [assets]
 
     # if no filters then print everything
     if not i and not e:
-        click.echo(pprint_and_color_json_obj(assets))
+        echo(assets)
         return
 
     # continue if there are filters
@@ -192,44 +290,41 @@ def assets_print(ctx, i, e):
     i.append('id')
     for asset in assets:
         filtered_assets.append({key: value for (key, value) in asset.items() if key in i})
-    click.echo(pprint_and_color_json_obj(filtered_assets))
+    echo(filtered_assets)
     return
 
 
-@assets.command("new")
+@asset.command("delete")
+@click.option('-id', help="Asset ID")
 @click.pass_context
-def assets_new(ctx):
-    logging.info("ASSETS NEW")
+def asset_delete(ctx, id):
+    # create list of asset_ids
+    if id is None:
+        asset_ids = [asset['id'] for asset in ctx.obj['assets']]
+        click.confirm('Delete all {} asset/s in context?'.format(len(asset_ids)), abort=True)
+    else:
+        asset_ids = [id]
 
-    data = {
-        'data': {
-            'asset': {
-                'id': '1231231231',
-                'titleList': {
-                    'title': [
-                        {'@language': 'en', '$': 'Title Text'}
-                    ]
-                },
-                'assetType': 'movie'
-            },
-            'material': {
-                'materialRef': [{
-                    '$': 'https://emptestdata.blob.core.windows.net/sources/Sintel/sintel.mp4'
-                }]
-            }
-        }
-    }
-    response = ctx.obj['mgmt_api_client'].ingest().post_asset(data)
-    click.echo(response)
+    # get progress bar ready
+    tasks = len(asset_ids)
+    label = "Deleting {} asset/s...".format(tasks)
+    with click.progressbar(length=tasks,
+                           label=label,
+                           show_percent=True,
+                           show_eta=True) as progress:
+        # do tasks
+        for asset_id in asset_ids:
+            response = ctx.obj['mgmt_api_client'].delete_asset(asset_id=asset_id)
+            progress.update(1)
 
 
-@assets.command("export")
+@asset.command("export")
 @click.option('-d', help="Target folder for export")
 @click.pass_context
 def assets_export(ctx, d):
     # check if any asset details stored.
     if 'assets' not in ctx.obj.keys():
-        click.echo('Nothing to export. No asset details stored.')
+        echo('Nothing to export. No asset details stored in context.')
         return
     items = ctx.obj['assets']
 
@@ -239,8 +334,8 @@ def assets_export(ctx, d):
             try:
                 os.makedirs(d)
             except Exception as e:
-                click.echo("Could not create dir: {0}".format(d))
-                click.echo(e)
+                echo("Could not create dir: {0}".format(d))
+                echo(e)
                 quit()
     else:
         d = ""
@@ -254,59 +349,70 @@ def assets_export(ctx, d):
         export_path = os.path.join(d, "{0}.{1}".format(item['id'], 'json'))
         try:
             with open(export_path, 'w', encoding='utf8') as f:
-                f.write(pprint_json_obj(item))
+                f.write(json.dumps(item, indent=4, ensure_ascii=False))
                 f.close()
         except:
             error_list.append(item['id'])
             continue
     success_count = len(items) - len(error_list)
-    click.echo('{} items exported. {} errors.'.format(success_count, len(error_list)))
+    echo('{} items exported. {} errors.'.format(success_count, len(error_list)))
     for err in error_list:
-        click.echo('Could not export: {}'.format(err))
+        echo('Could not export: {}'.format(err))
 
 
 
 
+#########################################################################
+# TAGS
+#########################################################################
 
 
-@cli.group()
-def configuration():
-    pass
-
-
-@configuration.command("list")
-@click.pass_context
-# TODO: add parameter options
-def config_list(ctx):
-    logging.info("CONFIG LIST")
-    response = ctx.obj['mgmt_api_client'].config().list()
-
-
-@cli.group()
-def system():
-    pass
-
-
-@system.command("config")
-@click.pass_context
-def system_config(ctx):
-    logging.info("SYSTEM CONFIG")
-    ctx.obj['system_config'] = ctx.obj['exp_api_client'].system().system_config()
-
-
-@cli.group()
+@cli.group(chain=True)
 def tag():
     pass
 
 
-@tag.command("list")
+@tag.command("get")
 @click.pass_context
 def tag_list(ctx):
-    logging.info("LIST TAGS")
-    click.echo(ctx.obj['exp_api_client'].tag().get_tags())
+    pass
 
+
+@tag.command("print")
+@click.pass_context
+def tag_list(ctx):
+    pass
+
+
+#########################################################################
+# HELPER FUNCTIONS
+#########################################################################
+
+def echo(msg, level=logging.INFO):
+    click.echo(pprint_and_color(msg))
+    logger.log(level, msg)
+
+
+def check_file(file_path):
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError
+
+
+#########################################################################
+# MAIN
+#########################################################################
 
 if __name__ == '__main__':
-    API_KEY_ID = config('RBM_MOTT_API_KEY_ID', default=None)
-    API_KEY_SECRET = config('RBM_MOTT_API_KEY_SECRET', default=None)
+    # load vars from .env file to environment variables for click option defaults
+    envvars = ['MGMT_API_KEY_ID',
+               'MGMT_API_KEY_SECRET',
+               'DEBUG',
+               'WORKING_DIR',
+               'WRITE_LOG'
+               ]
+    for var in envvars:
+        if config(var, default=None) is not None:
+            os.environ[var] = config(var)
+
+    # run click application
     cli()

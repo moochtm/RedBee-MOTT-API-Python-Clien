@@ -1,0 +1,13 @@
+check folder exists
+read folder
+find metadata file/s
+create jobs list
+create working folders (_success, _fail)
+for each job/metadata file - with progress bar
+    create data object
+    replace local file paths with http URLs
+    render metadata template
+    call ingest api
+    process result
+        if success move job files to _success
+        if fail move job files to _fail
