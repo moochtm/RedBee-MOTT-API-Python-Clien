@@ -1,6 +1,11 @@
 from base64 import b64encode
 import json
 
+# http://badgerfish.ning.com
+from xmljson import badgerfish as bf  # https://xmljson.readthedocs.io/en/latest/
+from lxml.html import Element, tostring  # https://pypi.org/project/lxml/
+import xml.dom.minidom
+
 """
 This module contains a client for the RBM MOTT Management API
 The client handles all REST API calls. It does not manipulate the responses.
@@ -19,7 +24,8 @@ class ManagementApiClient:
             'Authorization': get_auth_header(api_key_id, api_key_secret)
         }
 
-        test_call = self.get_product()
+        # do a test call to check cu/bu, auth and host
+        self.get_product()
 
 #########################################################################
 # CLASS HELPER FUNCTIONS
@@ -76,6 +82,22 @@ class ManagementApiClient:
 #########################################################################
 
     def get_assets(self, params: dict = None):
+        url = '/v1/{}/asset'.format(self._cu_bu_path())
+
+        # build params
+        if params is None:
+            params = {}
+        default_params = {
+            'pageNumber': 1,
+            'pageSize': 1
+        }
+        final_params = {**default_params, **params}
+        response = self._request_maker.get(url=url, params=params)
+        if response.status_code != 200:
+            return {}
+        return response.json()
+
+    def post_assets(self, publish_metadata: dict):
         url = '/v1/{}/asset'.format(self._cu_bu_path())
 
         # build params

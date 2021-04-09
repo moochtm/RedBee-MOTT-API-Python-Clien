@@ -35,34 +35,42 @@ minor_separator = ''.join([char*separator_length for char in ['-']])
 # examples...
 """
 get all assets
-ASSETS GET
+ASSETS -get
 
 delete all assets
-ASSETS GET DELETE
-or
-ASSETS GET
-DELETE
+ASSETS -get -delete
 
-delete filtered assets from GET call
-ASSETS GET FILTER DELETE
+delete filtered assets from *previous* GET call
+ASSETS -filter ...
 
 ingest a single object
-INGEST -t template -i input_file
+ASSETS -ingest -t template -i input_file
 
 batch ingest multiple objects
-INGEST -t template
+ASSETS -ingest -t template -i input_file -b
 
 add a tag to asset with id
-ASSETS -id 123 ADD TAGS -id 123
+ASSETS -get -id 123 -update tags -add=123
 
 add tags to filtered assets
-ASSETS GET FILTER ADD TAGS -id 123 -id 456
+ASSETS -get -filter 123 -update tags -add=[123, 456]
 
 publish filtered assets
-ASSETS GET FILTER PUBLICATIONS --dates --products ADD
+ASSETS -get -filter 123 -update publications 
+<publication>
+                <id>{{assetId}}</id>
+                <startTime>2020-01-24T00:00:00.000Z</startTime>
+                <endTime>2025-01-24T00:00:00.000Z</endTime>
+                <publishTime>2019-12-01T00:00:00.000Z</publishTime>
+                <publicationRights>
+                    <productList>
+                        <product>{{productId}}</product>
+                    </productList>
+                </publicationRights>
+            </publication>
 
 unpublish all assets
-ASSETS GET PUBLICATIONS DELETE
+ASSETS -get -update publications -remove
 
 find season in series and publish all episodes
 SERIES FILTER --title 123
@@ -74,8 +82,8 @@ EVENTS
 """
 
 
-@shell(prompt='mott > ', chain=True)
-# @click.group() is replaced by @shell
+@shell(prompt='mott > ')
+@click.group(chain=True) #  is replaced by @shell
 @click.option('--mgmt-api-key-id', help="Management API Key ID", envvar='MGMT_API_KEY_ID', required=True)
 @click.option('--mgmt-api-key-secret', help="Management API Key ID", envvar='MGMT_API_KEY_SECRET', required=True)
 @click.option('--debug', help="Enable debug logging", envvar='DEBUG', is_flag=True)
