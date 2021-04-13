@@ -5,6 +5,8 @@ from management_api import ManagementApiClient
 from customer_portal_api import CustomerPortalApiClient
 import rbm_mott_cli.utils.ingest_metadata as ingest_metadata
 
+from decouple import config  # https://pypi.org/project/python-decouple/
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -152,10 +154,11 @@ class MottClient:
 
 
 if __name__ == '__main__':
+
     mott = MottClient(cu='Matt', bu='MattTV',
-                      mgmt_api_key_id='aQRhyWFMM0wIDZ1CQHu3',
-                      mgmt_api_key_secret='HlhmnLpMfCHE0V0XuRUkLhtEiaxI6rIey35lySrvjsTnlqlwRxEg4Yjbfh4FKbIDGUVZMqFj1pdDtk6KimF2VOkKhdggJ0n1nw9s',
-                      cp_api_session_auth='e9b68e26-0d54-4edb-a60a-777bc7c6941b')
+                      mgmt_api_key_id=config('MGMT_API_KEY_ID'),
+                      mgmt_api_key_secret=config('MGMT_API_KEY_SECRET'),
+                      cp_api_session_auth=config('CP_API_SESSION_AUTH'))
     tags_data = {
         'default_language': 'en',
         'tags': [
