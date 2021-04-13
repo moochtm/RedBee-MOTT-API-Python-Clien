@@ -1,65 +1,40 @@
-import json
-import xml.etree.ElementTree as ET
-
-NAMESPACE = '{http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1}'
-
-
-class Objdict(dict):
-    def __getattr__(self, name):
-        if name in self:
-            return self[name]
-        else:
-            # return empty list so that __getattr__ = false and __iter__ length = 0
-            return []
-            # raise AttributeError("No such attribute: " + name)
-
-    def __setattr__(self, name, value):
-        self[name] = value
-
-    def __delattr__(self, name):
-        if name in self:
-            del self[name]
-        else:
-            raise AttributeError("No such attribute: " + name)
-
-
-def get_publish_metadata(src) -> ET:
-    src = Objdict(src)
-
-    publish_metadata = ET.Element('{}publish-metadata'.format(NAMESPACE))
-    data = ET.SubElement(publish_metadata, '{}data'.format(NAMESPACE))
-
-    if src.asset:
-        asset = ET.SubElement(data, '{}asset'.format(NAMESPACE))
-
-    return ET.tostring(publish_metadata)
-
-template = """
 <?xml version="1.0" encoding="UTF-8"?>
 <publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1">
     <data>
+        {% for tag in data.tags %}
+        <tag id="{{ tag.tagId }}" type="{{ tag.scheme | default('other') }}">
+            <tagNames>
+                {% for locale in tag.localized %}
+                <tagName language="{{ locale.locale | default(data.default_language) }}">{{ locale.title }}</tagName>
+                {% endfor %}
+            </tagNames>
+        </tag>
+        {% endfor %}
         {% for asset in data.assets %}
+        {% if asset.type == 'TV_SHOW' %}
+        <series>
+        {% else %}
         <asset>
+        {% endif %}
             <id>{{ asset.id }}</id>
+            <externalId>{{ asset.externalId }}</externalId>
             <provider>{{ asset.provider }}</provider>
             <productionYear>{{ asset.production_year }}</productionYear>
             <titleList>
-                {% for title in asset.title_list %}
-                <title language="{{ title.language }}">{{ title.text }}</title>
+                {% for locale in asset.localized %}
+                <title language="{{ locale.locale }}">{{ locale.title }}</title>
                 {% endfor %}
             </titleList>
             <descriptionList>
-                {% for d in asset.description_list %}
-                <description language="{{ d.language }}" length="{{ d.len }}">{{ d.text }}</description>
+                {% for locale in asset.localized %}
+                <description language="{{ locale.locale }}" length="short">{{ locale.shortDescription }}</description>
+                <description language="{{ locale.locale }}" length="medium">{{ locale.mediumDescription }}</description>
+                <description language="{{ locale.locale }}" length="long">{{ locale.longDescription }}</description>
                 {% endfor %}
             </descriptionList>
-            <tagList>
-                {% for t in asset.tag_list %}
-                <tagIdRef>t.tag_id_ref</tagIdRef>
-                {% endfor %}
-            </tagList>
             <imageList>
-                {% for i in asset.image_list %}
+                {% for locale in asset.localized %}
+                {% for i in locale.images %}
                 <image language="{{ i.lang }}">
                     <id>{{ i.id }}</id>
                     <url>{{ i.url }}</url>
@@ -69,9 +44,20 @@ template = """
                     <orientation>{{ i.orientation }}</orientation>
                 </image>
                 {% endfor %}
+                {% endfor %}
             </imageList>
+            <tagList>
+                {% for tag in data.tags %}
+                <tagIdRef>{{ tag.text | slugify }}</tagIdRef>
+                {% endfor %}
+                {% for tag_set in asset.tagRefs %}
+                {% for tag in tag_set.tags %}
+                <tagIdRef>{{ tag }}</tagIdRef>
+                {% endfor %}
+                {% endfor %}
+            </tagList>
             <parentalRatingList>
-                {% for pr in asset.parental_rating_list %}
+                {% for pr in asset.parentalRatings %}
                 <parentalRating>
                     <rating>{{ pr.rating }}</rating>
                     <scheme>{{ pr.scheme }}</scheme>
@@ -79,11 +65,17 @@ template = """
                 </parentalRating>
                 {% endfor %}
             </parentalRatingList>
-            <assetType>{{ asset.asset_type | lower }}</assetType>
-            <seriesId>{{ asset.series_id }}</seriesId>
-            <seasonId>{{ asset.season_id }}</seasonId>
-            <episodeNumber>{{ asset.episode_number }}</episodeNumber>
+            {% if asset.type != 'TV_SHOW' %}
+            <assetType>{{ asset.type | lower }}</assetType>
+            {% endif %}
+            <seriesId>{{ asset.tvShowId }}</seriesId>
+            <seasonId>{{ asset.seasonId }}</seasonId>
+            <episodeNumber>{{ asset.episode }}</episodeNumber>
+        {% if asset.type == 'TV_SHOW' %}
+        </series>
+        {% else %}
         </asset>
+        {% endif %}
         {% endfor %}
         <material>
             {% for mref in data.material.material_refs %}
@@ -121,29 +113,3 @@ template = """
         </publicationList>
     </data>
 </publish-metadata>
-"""
-
-if __name__ == '__main__':
-    data = {
-        'publish-metadata': {
-            '@xlmns': {
-               '$': 'http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1'
-            },
-            'data': {
-                'asset': {
-                    'id': '1231231231',
-                    'title_list': [{
-                        'text': 'Title Text'
-                    }],
-                    'asset_type': 'MOVIE'
-                },
-                'material': {
-                    'material_refs': [{
-                        'text': 'https://emptestdata.blob.core.windows.net/sources/Sintel/sintel.mp4'
-                    }]
-                }
-            }
-        }
-    }
-    result = get_publish_metadata(data)
-    print(result)

@@ -1,5 +1,4 @@
 # built in
-import json
 import logging
 import os
 from datetime import datetime
@@ -10,11 +9,10 @@ import click  # https://pypi.org/project/click/
 from decouple import config  # https://pypi.org/project/python-decouple/
 
 # this package
-from mgmt_api_client.mgmt_api import ManagementApiClient
+from rbm_mott_cli.api_client.mgmt_api import ManagementApiClient
 from exp_api_client.exp_api import ExposureApiClient
 from utils.pprinting import pprint_and_color
-import utils.ingest_metadata as ingest_metadata
-from request_maker import RequestMaker
+from rbm_mott_cli.api_client.request_maker import RequestMaker
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -50,31 +48,17 @@ batch ingest multiple objects
 ASSETS -ingest -t template -i input_file -b
 
 add a tag to asset with id
-ASSETS -get -id 123 -update tags -add=123
+ASSETS -get -id 123 -add tags 123
 
 add tags to filtered assets
-ASSETS -get -filter 123 -update tags -add=[123, 456]
+ASSETS -get -filter 123 -add tags 123 456
 
 publish filtered assets
-ASSETS -get -filter 123 -update publications 
-<publication>
-                <id>{{assetId}}</id>
-                <startTime>2020-01-24T00:00:00.000Z</startTime>
-                <endTime>2025-01-24T00:00:00.000Z</endTime>
-                <publishTime>2019-12-01T00:00:00.000Z</publishTime>
-                <publicationRights>
-                    <productList>
-                        <product>{{productId}}</product>
-                    </productList>
-                </publicationRights>
-            </publication>
+ASSETS -get -filter 123 -add publications -st time -et time -pt time -p product_id
+ASSETS GET FILTER 123 ADD -publicationsn
 
 unpublish all assets
 ASSETS -get -update publications -remove
-
-find season in series and publish all episodes
-SERIES FILTER --title 123
-SEASON -id 123 PUBLICATIONS --dates --products ADD
 
 
 EVENTS
@@ -142,7 +126,8 @@ def cli(ctx, mgmt_api_key_id, mgmt_api_key_secret, debug, working_dir, write_log
                'exp_api_client': ExposureApiClient(request_maker=RequestMaker(),
                                                    cu=cu,
                                                    bu=bu),
-               'working_dir': working_dir}
+               'working_dir': working_dir,
+               'command_chain': []}
 
 
 #########################################################################
@@ -159,22 +144,23 @@ def test(ctx):
 # OBJECTS
 #########################################################################
 
-@cli.command()
+@cli.command('products')
 @click.pass_context
 def products(ctx):
-    pass
+    ctx.obj['command_chain'].append('products')
 
 
-@cli.command()
+@cli.command('assets')
+@click.option('-id', help='Asset ID', multiple=True)
 @click.pass_context
-def assets(ctx):
-    pass
+def assets(ctx, id):
+    ctx.obj['command_chain'].append('assets')
 
 
-@cli.command()
+@cli.command('tags')
 @click.pass_context
 def tags(ctx):
-    pass
+    ctx.obj['command_chain'].append('tags')
 
 
 #########################################################################
@@ -192,7 +178,8 @@ def get(ctx):
 @click.option('-e', help='Fields to exclude.', multiple=True)
 @click.pass_context
 def print(ctx, i, e):
-    pass
+    echo(ctx.obj['command_chain'])
+    ctx.obj['command_chain'] = []
 
 
 @cli.command()

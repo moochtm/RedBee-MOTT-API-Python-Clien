@@ -1,9 +1,14 @@
+import os
+
 from jinja2 import Template, Environment, Undefined
 from lxml import etree
 from slugify import slugify
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 NAMESPACE = '{http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1}'
+
+this_file_dir, _ = os.path.split(os.path.abspath(__file__))
+template_path = os.path.join(this_file_dir, 'publish_metadata_template.xml')
 
 
 class SilentUndefined(Undefined):
@@ -14,12 +19,15 @@ class SilentUndefined(Undefined):
         return ''
 
 
-def create(data, template_file):
-    template_text = template_file.read()
+def create(data, template_text=None):
     env = Environment()
     env.undefined = SilentUndefined
     env.filters['slugify'] = slugify_text
     env.filters['remove_url_params'] = remove_url_params
+
+    if template_text is None:
+        with open(template_path, 'r', encoding='utf8') as f:
+            template_text = f.read()
 
     j2t = env.from_string(template_text)
     render = j2t.render(data=data)
@@ -45,7 +53,7 @@ def create(data, template_file):
         for element in root.xpath(".//*[not(node())]"):
             element.getparent().remove(element)
 
-    return etree.tostring(root, pretty_print=True).decode()
+    return etree.tostring(root, pretty_print=True, encoding='UTF-8').decode()
 
 
 def slugify_text(text):

@@ -1,6 +1,6 @@
 from decouple import config  # https://pypi.org/project/python-decouple/
-from rbm_mott_cli.mgmt_api_client.mgmt_api import ManagementApiClient
-from rbm_mott_cli.request_maker import RequestMaker
+from rbm_mott_cli.api_client.mgmt_api import ManagementApiClient
+from rbm_mott_cli.api_client.request_maker import RequestMaker
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
