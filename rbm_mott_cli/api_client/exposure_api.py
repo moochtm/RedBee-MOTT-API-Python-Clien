@@ -1,7 +1,6 @@
-from request_maker import Request
+from api_client.request_maker import Request
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 
 """
 This module contains a client for the RBM MOTT Exposure API

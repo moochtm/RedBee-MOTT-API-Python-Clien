@@ -1,14 +1,13 @@
 # https://hub.packtpub.com/elegant-restful-client-python-exposing-remote-resources/
 import requests
-from exposure_api import ExposureApiClient
-from management_api import ManagementApiClient
-from customer_portal_api import CustomerPortalApiClient
-import rbm_mott_cli.utils.ingest_metadata as ingest_metadata
+from api_client.exposure_api import ExposureApiClient
+from api_client.management_api import ManagementApiClient
+from api_client.customer_portal_api import CustomerPortalApiClient
+import utils.ingest_metadata as ingest_metadata
 
 from decouple import config  # https://pypi.org/project/python-decouple/
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 """
@@ -98,6 +97,18 @@ class MottClient:
         return mgmt_api_response_items
 
     #########################################################################
+    # ASSET
+    #########################################################################
+
+    def get_asset_materials(self, asset_id: str):
+        logger.info('-'*60)
+        logger.info(f'{str(type(self).__name__)}::{"get_asset_materials"}')
+
+        # make api calls
+        # TODO - return materials or False
+        return self.mgmt_api_client.get_asset_materials(asset_id=asset_id)
+
+    #########################################################################
     # TAGS
     #########################################################################
 
@@ -116,16 +127,13 @@ class MottClient:
         cp_api_response = get_all_pages(func=self.cp_api_client.get_tags, params=final_params)
         return cp_api_response['items']
 
-    def post_tags(self, tags_data):
+    def post_tags(self, data):
         logger.info('-'*60)
         logger.info(f'{str(type(self).__name__)}::{"post_tags"}')
 
-        # render tags_data
-        data = ingest_metadata.create(tags_data)
-        print(data)
-
         # make api calls
-        return self.mgmt_api_client.post_tags(data=data)
+        response = self.mgmt_api_client.post_tags(data=data)
+        return response.json() if response.status_code == 200 else False
 
     #########################################################################
     # TAG
@@ -136,6 +144,7 @@ class MottClient:
         logger.info(f'{str(type(self).__name__)}::{"get_tag"}')
 
         # make api calls
+        # TODO - return Tag info
         return self.exp_api_client.get_tag(tag_id=tag_id)
 
     def delete_tag(self, tag_id: str, params: dict = None):
@@ -150,6 +159,7 @@ class MottClient:
         final_params = {**default_params, **params}
 
         # make api calls
+        # TODO - return True or False
         return self.cp_api_client.delete_tag(tag_id=tag_id, params=final_params)
 
 

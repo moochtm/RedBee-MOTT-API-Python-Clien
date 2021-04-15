@@ -2,10 +2,10 @@
 <publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1">
     <data>
         {% for tag in data.tags %}
-        <tag id="{{ tag.tagId }}" type="{{ tag.scheme | default('other') }}">
+        <tag id="{{ tag.id }}" type="{{ tag.type | default('other') }}">
             <tagNames>
-                {% for locale in tag.localized %}
-                <tagName language="{{ locale.locale | default(data.default_language) }}">{{ locale.title }}</tagName>
+                {% for key in tag.descriptions.keys() %}
+                <tagName language="{{ key | default(data.default_language) }}">{{ tag.descriptions[key].title }}</tagName>
                 {% endfor %}
             </tagNames>
         </tag>

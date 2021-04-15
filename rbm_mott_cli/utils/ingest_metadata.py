@@ -32,8 +32,12 @@ def create(data, template_text=None):
     j2t = env.from_string(template_text)
     render = j2t.render(data=data)
 
+    print('1b ' + str(render))
+
     parser = etree.XMLParser(remove_blank_text=True, remove_comments=True)
     root = etree.fromstring(bytes(render, encoding='utf8'), parser=parser)
+
+    print('1c ' + etree.tostring(root, pretty_print=True, encoding='UTF-8').decode())
 
     # strip whitespace from text and tail
     for elem in root.iter('*'):
@@ -48,10 +52,14 @@ def create(data, template_text=None):
             if not elem.get(key):
                 elem.attrib.pop(key)
 
+    print('1d ' + etree.tostring(root, pretty_print=True, encoding='UTF-8').decode())
+
     # remove empty nodes
     while len(root.xpath(".//*[not(node())]")) > 0:
         for element in root.xpath(".//*[not(node())]"):
             element.getparent().remove(element)
+
+    print('1e ' + etree.tostring(root, pretty_print=True, encoding='UTF-8').decode())
 
     return etree.tostring(root, pretty_print=True, encoding='UTF-8').decode()
 

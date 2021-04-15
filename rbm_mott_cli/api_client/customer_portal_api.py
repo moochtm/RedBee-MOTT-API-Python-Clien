@@ -1,8 +1,7 @@
-from request_maker import Request
+from api_client.request_maker import Request
 from base64 import b64encode
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 """
