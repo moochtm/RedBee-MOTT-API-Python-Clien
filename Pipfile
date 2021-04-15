@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+click = "*"
+python-decouple = "*"
+click-shell = "*"
+requests = "*"
+jinja2 = "*"
+lxml = "*"
+pygments = "*"
+python-slugify = "*"
+dict2obj = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"
