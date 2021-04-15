@@ -1,4 +1,5 @@
 from api_client.request_maker import Request
+from utils.logging_utils import log_function_call
 from base64 import b64encode
 import logging
 
@@ -48,6 +49,7 @@ class ManagementApiClient:
     #########################################################################
 
     @Request(method='get')
+    @log_function_call
     def test(self, params: dict = None, body=None):
         return {
             'url': f'{self.host}/v1/{self.cu_bu}/tag',
@@ -115,6 +117,7 @@ class ManagementApiClient:
     # PRODUCTS
     #########################################################################
 
+    @log_function_call
     @Request(method='get')
     def get_product(self):
         return {

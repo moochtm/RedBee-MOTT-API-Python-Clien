@@ -1,5 +1,7 @@
 from json.decoder import JSONDecodeError
 import requests
+import functools
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -12,6 +14,7 @@ class Request:
         }
 
     def __call__(self, f):
+        @functools.wraps(f)
         def wrapper(obj, *args, **kwargs) -> requests.request:
             logger.info('-'*60)
             logger.info(f'{str(type(obj).__name__)}::{str(f.__name__)}')

@@ -3,7 +3,9 @@ import requests
 from api_client.exposure_api import ExposureApiClient
 from api_client.management_api import ManagementApiClient
 from api_client.customer_portal_api import CustomerPortalApiClient
+
 import utils.ingest_metadata as ingest_metadata
+from utils.logging_utils import log_function_call
 
 from decouple import config  # https://pypi.org/project/python-decouple/
 
@@ -112,6 +114,7 @@ class MottClient:
     # TAGS
     #########################################################################
 
+    @log_function_call
     def get_tags(self, params: dict = None):
         logger.info('-'*60)
         logger.info(f'{str(type(self).__name__)}::{"get_tags"}')

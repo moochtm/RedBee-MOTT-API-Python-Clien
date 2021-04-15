@@ -14,15 +14,10 @@ from api_client.mott_client import MottClient
 from utils.pprinting import pprint_and_color
 import utils.ingest_metadata as ingest_metadata
 from utils.dict_utils import Dict2Obj
+from utils.logging_utils import log_function_call
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    '%(asctime)s | %(name)s |  %(levelname)s: %(message)s')
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.ERROR)
-stream_handler.setFormatter(formatter)
-# logger.addHandler(stream_handler)
 
 separator_length = 60
 major_separator = ''.join([char*separator_length for char in ['=']])
@@ -84,7 +79,7 @@ def cli(ctx, mgmt_api_key_id, mgmt_api_key_secret, cp_api_session_auth, debug, w
     if write_log:
         log_path = os.path.join(working_dir, 'mott_cli.log')
         file_handler = logging.FileHandler(log_path)
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(asctime)s - %(levelname)-8s - %(name)-28s : %(message)s')
         file_handler.setFormatter(formatter)
         file_handler.setLevel(logging.INFO)
         if debug:
@@ -457,8 +452,10 @@ def tags_ingest(ctx, i, t, l):
 
 
 @tag.command("get")
+@click.option('-id', help="Tag ID with which to filter assets")
 @click.pass_context
-def tag_get(ctx):
+@log_function_call
+def tag_get(ctx, id):
     # setup params for API call
     params = {}
 
@@ -517,9 +514,35 @@ def tags_export(ctx, d, sf):
 
 
 @tag.command("print")
+@click.option('-i', help='Fields to include.', multiple=True)
+@click.option('-e', help='Fields to exclude.', multiple=True)
 @click.pass_context
-def tag_list(ctx):
-    pass
+def tag_print(ctx, i, e):
+    # check if any asset details stored.
+    if 'tags' not in ctx.obj.keys():
+        echo('Nothing to print. No tag details stored.')
+        return
+
+    items = ctx.obj['tags']
+    if type(items) is not list:
+        items = [items]
+
+    # if no filters then print everything
+    if not i and not e:
+        echo(items)
+        return
+
+    # continue if there are filters
+    i = list(i)
+    e = list(e)
+    i.append('id')
+    filtered_items = [
+        {key: value for (key, value) in item.items() if key in i}
+        for item in items
+    ]
+
+    echo(filtered_items)
+    return
 
 
 @tag.command("delete")
