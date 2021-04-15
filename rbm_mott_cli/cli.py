@@ -463,12 +463,15 @@ def tag_get(ctx):
     params = {}
 
     # get initial response
-    tags = ctx.obj['mott_client'].get_tags(params=params)
+    response = ctx.obj['mott_client'].get_tags(params=params)
 
-    # store only the items (the assets) in click context
-    ctx.obj['tags'] = tags
-    # report what happened
-    echo('Stored {} tag/s in context'.format(len(tags)), color='green')
+    if response:
+        # store only the items (the assets) in click context
+        ctx.obj['tags'] = response
+        # report what happened
+        echo('Stored {} tag/s in context'.format(len(ctx.obj['tags'])), color='green')
+    else:
+        echo(msg='Command failed.', level=logging.ERROR, color='red')
 
 
 @tag.command("export")
@@ -520,7 +523,7 @@ def tag_list(ctx):
 
 
 @tag.command("delete")
-@click.option('-id', help="Tag ID")
+@click.option('-item_id', help="Tag ID")
 @click.pass_context
 def tag_delete(ctx, item_id):
     # create list of items to act on

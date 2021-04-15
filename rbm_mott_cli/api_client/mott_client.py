@@ -144,8 +144,8 @@ class MottClient:
         logger.info(f'{str(type(self).__name__)}::{"get_tag"}')
 
         # make api calls
-        # TODO - return Tag info
-        return self.exp_api_client.get_tag(tag_id=tag_id)
+        response = self.exp_api_client.get_tag(tag_id=tag_id)
+        return response.json() if response.status_code == 200 else False
 
     def delete_tag(self, tag_id: str, params: dict = None):
         logger.info('-'*60)
