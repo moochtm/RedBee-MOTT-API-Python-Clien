@@ -98,6 +98,12 @@ class MottClient:
 
         return mgmt_api_response_items
 
+    @log_function_call
+    def post_assets(self, data):
+        # make api calls
+        response = self.mgmt_api_client.post_assets(data=data)
+        return response.json() if response.status_code == 200 else False
+
     #########################################################################
     # ASSET
     #########################################################################
@@ -111,14 +117,51 @@ class MottClient:
         return self.mgmt_api_client.get_asset_materials(asset_id=asset_id)
 
     #########################################################################
+    # MATERIALS
+    #########################################################################
+
+    @log_function_call
+    def post_materials(self, data):
+        # make api calls
+        response = self.mgmt_api_client.post_materials(data=data)
+        return response.json() if response.status_code == 200 else False
+
+    #########################################################################
+    # PUBLICATIONS
+    #########################################################################
+
+    @log_function_call
+    def post_publications(self, data):
+        # make api calls
+        response = self.mgmt_api_client.post_publications(data=data)
+        return response.json() if response.status_code == 200 else False
+
+    #########################################################################
+    # SEASONS
+    #########################################################################
+
+    @log_function_call
+    def post_seasons(self, data):
+        # make api calls
+        response = self.mgmt_api_client.post_seasons(data=data)
+        return response.json() if response.status_code == 200 else False
+
+    #########################################################################
+    # SERIES
+    #########################################################################
+
+    @log_function_call
+    def post_series(self, data):
+        # make api calls
+        response = self.mgmt_api_client.post_series(data=data)
+        return response.json() if response.status_code == 200 else False
+
+    #########################################################################
     # TAGS
     #########################################################################
 
     @log_function_call
     def get_tags(self, params: dict = None):
-        logger.info('-'*60)
-        logger.info(f'{str(type(self).__name__)}::{"get_tags"}')
-
         # build params
         default_params = {
             'pageSize': 100
@@ -130,10 +173,8 @@ class MottClient:
         cp_api_response = get_all_pages(func=self.cp_api_client.get_tags, params=final_params)
         return cp_api_response['items']
 
+    @log_function_call
     def post_tags(self, data):
-        logger.info('-'*60)
-        logger.info(f'{str(type(self).__name__)}::{"post_tags"}')
-
         # make api calls
         response = self.mgmt_api_client.post_tags(data=data)
         return response.json() if response.status_code == 200 else False

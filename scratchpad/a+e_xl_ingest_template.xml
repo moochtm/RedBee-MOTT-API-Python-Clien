@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1">
+    <data>
+        {% for tag in data.job_data.genre.split(' &gt; ') %}
+        <tag id="{{ tag | slugify }}" type="other">
+            <tagNames>
+                <tagName language="en">{{ tag }}</tagName>
+            </tagNames>
+        </tag>
+        {% endfor %}
+        <asset>
+            <id>{{ data.job_data.availasset_episodecontentid }}</id>
+            <!--<externalId>{{ data.job_data.a_e_media_id }}</externalId>-->
+            <provider></provider>
+            <productionYear></productionYear>
+            <countryOfOriginList>
+                <country>{{ data.job_data.country_of_origin }}</country>
+            </countryOfOriginList>
+            <titleList>
+                <title language="en">{{ data.job_data.availmetadata_episodetitleinternalalias }}</title>
+            </titleList>
+            <descriptionList>
+                <description language="en" length="long">{{ data.job_data.series_synopsis_long }}</description>
+            </descriptionList>
+            <imageList>
+                <!--<image language="en">
+                    <id>{{ data.job_data.image_file_name_a_e_arq_image_file_name | slugify }}</id>
+                    <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_a_e_arq_image_file_name }}</url>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+                <image language="en">
+                    <id>{{ data.job_data.image_file_name_arq_ama_image_file_name | slugify }}</id>
+                    <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+                <image language="en">
+                    <id>{{ data.job_data.image_file_name_a_e_arq_image_file_name | slugify }}</id>
+                    <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>-->
+            </imageList>
+            <tagList>
+                {% for tag in data.job_data.genre.split(' &gt; ') %}
+                <tagIdRef>{{ tag | slugify }}</tagIdRef>
+                {% endfor %}
+            </tagList>
+            <parentalRatingList>
+                <parentalRating>
+                    <rating>{{ data.job_data.availmetadata_ratingvalue }}</rating>
+                    <scheme>Age</scheme>
+                    <country>GB</country>
+                </parentalRating>
+            </parentalRatingList>
+            <assetType>{{ data.job_data.availasset_worktype | lower }}</assetType>
+            <seriesId>{{ data.job_data.availasset_seriescontentid }}</seriesId>
+            <seasonId>{{ data.job_data.availasset_seasoncontentid }}</seasonId>
+            <episodeNumber>{{ data.job_data.availmetadata_episodenumber }}</episodeNumber>
+        </asset>
+        <season>
+            <id>{{ data.job_data.availasset_seasoncontentid }}</id>
+            <titleList>
+                <title language="en">{{ data.job_data.availmetadata_seriestitleinternalalias }}</title>
+            </titleList>
+            <descriptionList>
+                <description language="en" length="short">{{ data.job_data.series_synopsis_long }}</description>
+            </descriptionList>
+            <tagList/>
+            <seriesId>{{ data.job_data.availasset_seriescontentid }}</seriesId>
+            <seasonNumber>{{data.job_data.availmetadata_seasonnumber}}</seasonNumber>
+            <numberOfEpisodes>{{ data.job_data.availmetadata_episodecount }}</numberOfEpisodes>
+        </season>
+        <series>
+            <id>{{ data.job_data.availasset_seriescontentid }}</id>
+            <titleList>
+                <title language="en">{{ data.job_data.availmetadata_seriestitleinternalalias }}</title>
+            </titleList>
+            <descriptionList>
+                <description language="en" length="long">{{ data.job_data.series_synopsis_long }}</description>
+            </descriptionList>
+            <tagList/>
+            <imageList>
+                <image language="en">
+                    <id>{{ data.job_data.image_file_name_a_e_arq_image_file_name | slugify }}</id>
+                    <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+            </imageList>
+        </series>
+        <material>
+            <materialRef>{{ data.base_url + '/' + data.job_data.files_videosource }}
+                <audioList>
+                    <audio channelDisplayNames="" channels="2" displayName="English" language="en" order="LR">
+                    </audio>
+                </audioList>
+            </materialRef>
+            <assetIdRef>{{ data.job_data.availasset_episodecontentid }}</assetIdRef>
+            <DRMEnabled>false</DRMEnabled>
+
+<dubList>
+    {% if data.job_data.files_extraaudwavlanguages %}
+    {% for lang in data.job_data.files_extraaudwavlanguages.split(',') %}
+    <dub language="{{ lang | get_2char_lang_code('--') }}" displayName="{{ lang | get_language }}" channels="" order="LR">
+        <filename>
+            {{ data.base_url + '/aud/' + data.job_data.a_e_media_id + '_' + lang + '.wav_' + lang + '.wav'}}
+        </filename>
+    </dub>
+    {% endfor %}
+    {% endif %}
+</dubList>
+            <!--
+<subtitleList>
+    {% if data.job_data.files_sublanguages %}
+    {% for lang in data.job_data.files_sublanguages.split(',') %}
+    <subtitle language="{{ lang | get_2char_lang_code('-') }}">
+        {{ data.base_url + '/subs/' + data.job_data.a_e_media_id + '_' + lang + '.pac.srt' }}
+    </subtitle>
+    {% endfor %}
+    {% endif %}
+</subtitleList>
+-->
+        </material>
+        <publicationList>
+            <publication>
+                <id>{{ data.job_data.availasset_episodecontentid }}</id>
+                <assetIdRef>{{ data.job_data.availasset_episodecontentid }}</assetIdRef>
+                <startTime>{{ data.job_data.availtrans_start | format_datetime }}</startTime>
+                <endTime>{{ data.job_data.availtrans_end | format_datetime }}</endTime>
+                <publishTime>{{ data.job_data.availtrans_start | format_datetime }}</publishTime>
+                <publicationRights>
+                    <productList>
+                        <product>svod</product>
+                    </productList>
+                </publicationRights>
+            </publication>
+        </publicationList>
+    </data>
+</publish-metadata>
+<!--
+  "job_data": {
+                "avail_displayname": "aetn",
+                "avail_licensee": null,
+                "availtrans_assetlanguage": null,
+                TODO "availtrans_territory": "GB",
+                "availtrans_territoryexclusion": null,
+                DONE "availasset_worktype": "Episode",
+                "disposition_entrytype": "Full Extract",
+                "availmetadata_seriestitleinternalalias": "Alaska PD",
+                "availmetadata_seriestitledisplayunlimited": null,
+                DONE: "availmetadata_seasonnumber": 1,
+                "availmetadata_distributionnumber": null,
+                DONE "availmetadata_episodenumber": 1,
+                "availmetadata_localizationtype": null,
+                "availmetadata_episodetitleinternalalias": "Call Of The Wild",
+
+                "availmetadata_episodecount": 8,
+
+                "availmetadata_episodetitleid": "Alaska_PD_S01",
+                "availmetadata_episodeid": "Alaska_PD_S01_E01",
+                "availmetadata_seriesaltid": "Alaska_PD_S01_E01",
+                "availmetadata_seasonaltid": "Alaska_PD",
+                "availmetadata_episodealtid": "Alaska_PD_S01_E01",
+                "avail_alid": "Alaska_PD_S01_E01",
+                "availmetadata_companydisplaycredit": null,
+                "availmetadata_groupidentity": "C+I Play",
+                "availmetadata_director": null,
+                "availtrans_licensetype": "SVOD",
+                "availtrans_licenserightsdescription": "C+I Play",
+                "availtrans_formatprofile": "HD",
+
+                DONE: "availtrans_start": "2021-01-08 00:00:00",
+                "availtrans_startlag": null,
+                TODO: "availtrans_end": "2022-11-22 00:00:00",
+
+                DONE "availasset_seriescontentid": "Alaska_PD",
+                DONE "availasset_seasoncontentid": "Alaska_PD_S01",
+                DONE "availasset_episodecontentid": "Alaska_PD_S01_E01",
+
+                TODO "availmetadata_ratingsystem": "BBFC",
+                TODO "availmetadata_ratingvalue": "PG",
+                TODO "availmetadata_ratingreason": "N/A",
+
+                DONE "country_of_origin": "US",
+                "production_country": "US",
+                DONE: "image_file_name_a_e_arq_image_file_name": "AETNUK_Alaska_PD_S01.jpg",
+                DONE: "image_file_name_arq_ama_image_file_name": "aetn-historyuk_Alaska_PD_S01-Image-16x9_Cover-gb-GB.jpg",
+                "original_air_date": "2020-04-02 00:00:00",
+                TODO: "genre": "Documentary > General",
+                DONE "series_synopsis_long": "In Alaska, police aren't just fighting crime, they're fighting wild animals and the cold.",
+                DONE episode_synopsis_long": "Overview of how Alaska has become the new wild west, and Jam",
+                DONE: "a_e_media_id": "AEL0069094",
+                "content_delivery_required_by": "2020-12-25 00:00:00",
+            },
+-->

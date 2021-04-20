@@ -3,6 +3,7 @@ from pygments import highlight
 from pygments.lexers import JsonLexer
 from pygments.formatters import TerminalFormatter
 import json
+import datetime
 
 
 def pprint_and_color(obj):
@@ -17,7 +18,7 @@ def pprint_and_color(obj):
 
 
 def _pprint_json_obj(j):
-    return json.dumps(j, indent=4, ensure_ascii=False)
+    return json.dumps(j, indent=4, ensure_ascii=False, default=_my_converter)
 
 
 def _pprint_and_color_json_obj(j):
@@ -31,3 +32,10 @@ def _try_string_to_json(myjson):
         return json.loads(myjson)
     except ValueError as e:
         return myjson
+    except TypeError as e:
+        return myjson
+
+
+def _my_converter(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()

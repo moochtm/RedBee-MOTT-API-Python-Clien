@@ -61,18 +61,18 @@ class ManagementApiClient:
     # ASSETS
     #########################################################################
 
-    @Request(method='get')
-    def get_assets(self, params: dict = None):
-        return {
-            'url': f'{self.host}/v1/{self.cu_bu}/asset',
-            'params': params or {}
-        }
-
     @Request(method='post')
     def post_assets(self, data):
         return {
             'url': f'{self.host}/v1/{self.cu_bu}/asset',
             'data': data
+        }
+
+    @Request(method='get')
+    def get_assets(self, params: dict = None):
+        return {
+            'url': f'{self.host}/v1/{self.cu_bu}/asset',
+            'params': params or {}
         }
 
     #########################################################################
@@ -113,6 +113,13 @@ class ManagementApiClient:
     # MATERIALS
     #########################################################################
 
+    @Request(method='post')
+    def post_materials(self, data):
+        return {
+            'url': f'{self.host}/v1/{self.cu_bu}/material',
+            'data': data
+        }
+
     #########################################################################
     # PRODUCTS
     #########################################################################
@@ -127,6 +134,24 @@ class ManagementApiClient:
     #########################################################################
     # PUBLICATIONS
     #########################################################################
+
+    @Request(method='post')
+    def post_publications(self, data):
+        return {
+            'url': f'{self.host}/v1/{self.cu_bu}/publication',
+            'data': data
+        }
+
+    #########################################################################
+    # SEASONS
+    #########################################################################
+
+    @Request(method='post')
+    def post_seasons(self, data):
+        return {
+            'url': f'{self.host}/v1/{self.cu_bu}/season',
+            'data': data
+        }
 
     #########################################################################
     # SERIES

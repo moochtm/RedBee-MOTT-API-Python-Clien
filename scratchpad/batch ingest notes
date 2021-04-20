@@ -1,0 +1,60 @@
+Batch ingest:
+Challenge: a single file might contain details of different objects that need to be created.
+E.g. Tags, Series, Seasons
+Ingest process needs to be independent of one object type: one process handles all obj types.
+
+When processing an items data, ingest xml for each object can be created. The question is how ingestion is then managed.
+The complete XML could still be created, and be broken down into parts.
+E.g. lxml could use xpath to identify whether there are nodes for tags, assets, series, etc.
+
+For each, a new xml is made in memory and used for ingest. Could use xpath to select and delete all
+<data> child nodes that are NOT the type being ingested.
+
+Might be needed to log returned ids from API calls, so IDs can be added to the assets.
+
+What order should things be created?
+1. Tags
+2. Series
+3. Seasons
+4. Assets
+5. Publications
+
+SEASON:
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1">
+    <data>
+        <season>
+            <id>{{seasonId}}</id>
+            <titleList>
+                <title language="en">Season title for {{seasonId}} in English</title>
+                <title language="sv">Season titel för {{seasonId}} på Svenska</title>
+            </titleList>
+            <descriptionList>
+                <description language="en" length="short">A short season description in English</description>
+                <description language="sv" length="short">A short season description in Swedish</description>
+                <description language="en" length="medium">A medium season description in English</description>
+                <description language="sv" length="medium">A medium season description in Swedish</description>
+                <description language="en" length="long">A long season description in English</description>
+                <description language="sv" length="long">A long season description in Swedish</description>
+            </descriptionList>
+            <tagList/>
+            <imageList>
+                <image language="sv">
+                    <id>image1</id>
+                    <url>http://myhost.se/myPath/MyImageInSv.jpg</url>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+                <image language="en">
+                    <id>image2</id>
+                    <url>http://myhost.se/myPath/MyImageInEn.jpg</url>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+            </imageList>
+            <seriesId>{{seasonId}}</seriesId>
+            <seasonNumber>1</seasonNumber>
+            <numberOfEpisodes>26</numberOfEpisodes>
+        </season>
+    </data>
+</publish-metadata>
