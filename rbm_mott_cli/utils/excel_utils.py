@@ -23,13 +23,15 @@ def list_of_dicts_from_excel(excel_filepath: str, worksheet_index: int = 0,
     wb = load_workbook(excel_filepath)
     sheet = wb.worksheets[worksheet_index]
 
+    print(sheet.max_row, sheet.max_column)
+
     keys = [
         slugify('-'.join(
             sheet.cell(j, i).value
             for j in key_rows
             if sheet.cell(j, i).value is not None
         )).replace('-', '_')
-        for i in range(1, sheet.max_column)
+        for i in range(1, sheet.max_column+10)
     ]
 
     items = []

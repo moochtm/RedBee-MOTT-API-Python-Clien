@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <publish-metadata xmlns="http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1">
     <data>
+        {% if data.job_data.genre is not none %}
         {% for tag in data.job_data.genre.split(' &gt; ') %}
         <tag id="{{ tag | slugify }}" type="other">
             <tagNames>
@@ -8,6 +9,7 @@
             </tagNames>
         </tag>
         {% endfor %}
+        {% endif %}
         <asset>
             <id>{{ data.job_data.availasset_episodecontentid }}</id>
             <!--<externalId>{{ data.job_data.a_e_media_id }}</externalId>-->
@@ -23,30 +25,25 @@
                 <description language="en" length="long">{{ data.job_data.series_synopsis_long }}</description>
             </descriptionList>
             <imageList>
-                <!--<image language="en">
+                <image language="en">
                     <id>{{ data.job_data.image_file_name_a_e_arq_image_file_name | slugify }}</id>
-                    <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_a_e_arq_image_file_name }}</url>
+                    <url>{{ data.base_url + '/asset_images/' + data.job_data.image_file_name_a_e_arq_image_file_name }}</url>
                     <purpose>banner</purpose>
                     <orientation>landscape</orientation>
                 </image>
                 <image language="en">
                     <id>{{ data.job_data.image_file_name_arq_ama_image_file_name | slugify }}</id>
-                    <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
+                    <url>{{ data.base_url + '/asset_images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
                     <purpose>banner</purpose>
                     <orientation>landscape</orientation>
                 </image>
-                <image language="en">
+                <!--<image language="en">
                     <id>{{ data.job_data.image_file_name_a_e_arq_image_file_name | slugify }}</id>
                     <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
                     <purpose>banner</purpose>
                     <orientation>landscape</orientation>
                 </image>-->
             </imageList>
-            <tagList>
-                {% for tag in data.job_data.genre.split(' &gt; ') %}
-                <tagIdRef>{{ tag | slugify }}</tagIdRef>
-                {% endfor %}
-            </tagList>
             <parentalRatingList>
                 <parentalRating>
                     <rating>{{ data.job_data.availmetadata_ratingvalue }}</rating>
@@ -54,6 +51,13 @@
                     <country>GB</country>
                 </parentalRating>
             </parentalRatingList>
+            <!--<tagList>
+                {% if data.job_data.genre is not none %}
+                {% for tag in data.job_data.genre.split(' &gt; ') %}
+                <tagIdRef>{{ tag | slugify }}</tagIdRef>
+                {% endfor %}
+                {% endif %}
+            </tagList>-->
             <assetType>{{ data.job_data.availasset_worktype | lower }}</assetType>
             <seriesId>{{ data.job_data.availasset_seriescontentid }}</seriesId>
             <seasonId>{{ data.job_data.availasset_seasoncontentid }}</seasonId>
@@ -80,48 +84,51 @@
             <descriptionList>
                 <description language="en" length="long">{{ data.job_data.series_synopsis_long }}</description>
             </descriptionList>
-            <tagList/>
             <imageList>
                 <image language="en">
                     <id>{{ data.job_data.image_file_name_a_e_arq_image_file_name | slugify }}</id>
-                    <url>{{ data.base_url + '/images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
+                    <url>{{ data.base_url + '/asset_images/' + data.job_data.image_file_name_a_e_arq_image_file_name }}</url>
+                    <purpose>banner</purpose>
+                    <orientation>landscape</orientation>
+                </image>
+                <image language="en">
+                    <id>{{ data.job_data.image_file_name_arq_ama_image_file_name | slugify }}</id>
+                    <url>{{ data.base_url + '/asset_images/' + data.job_data.image_file_name_arq_ama_image_file_name }}</url>
                     <purpose>banner</purpose>
                     <orientation>landscape</orientation>
                 </image>
             </imageList>
+            <tagList/>
         </series>
         <material>
-            <materialRef>{{ data.base_url + '/' + data.job_data.files_videosource }}
+            <materialRef>{{ data.base_url + '/trimmed/trimmed_assets/' + data.job_data.files_videosource }}
                 <audioList>
                     <audio channelDisplayNames="" channels="2" displayName="English" language="en" order="LR">
                     </audio>
                 </audioList>
             </materialRef>
             <assetIdRef>{{ data.job_data.availasset_episodecontentid }}</assetIdRef>
-            <DRMEnabled>false</DRMEnabled>
-
-<dubList>
-    {% if data.job_data.files_extraaudwavlanguages %}
-    {% for lang in data.job_data.files_extraaudwavlanguages.split(',') %}
-    <dub language="{{ lang | get_2char_lang_code('--') }}" displayName="{{ lang | get_language }}" channels="" order="LR">
-        <filename>
-            {{ data.base_url + '/aud/' + data.job_data.a_e_media_id + '_' + lang + '.wav_' + lang + '.wav'}}
-        </filename>
-    </dub>
-    {% endfor %}
-    {% endif %}
-</dubList>
-            <!--
-<subtitleList>
-    {% if data.job_data.files_sublanguages %}
-    {% for lang in data.job_data.files_sublanguages.split(',') %}
-    <subtitle language="{{ lang | get_2char_lang_code('-') }}">
-        {{ data.base_url + '/subs/' + data.job_data.a_e_media_id + '_' + lang + '.pac.srt' }}
-    </subtitle>
-    {% endfor %}
-    {% endif %}
-</subtitleList>
--->
+            <!--<DRMEnabled>false</DRMEnabled>-->
+            <subtitleList>
+                {% if data.job_data.files_sublanguages is not none %}
+                {% for lang in data.job_data.files_sublanguages.split(',') %}
+                <subtitle language="{{ lang | get_2char_lang_code('-') }}">
+                    {{ data.base_url + '/subs/offset/' + data.job_data.a_e_media_id + '_' + lang + '.pac.srt' }}
+                </subtitle>
+                {% endfor %}
+                {% endif %}
+            </subtitleList>
+            <!--<dubList>
+                {% if data.job_data.files_extraaudwavlanguages is not none %}
+                {% for lang in data.job_data.files_extraaudwavlanguages.split(',') %}
+                <dub language="{{ lang | get_2char_lang_code('--') }}" displayName="{{ lang | get_language }}" channels="" order="LR">
+                    <filename>
+                        {{ data.base_url + '/aud/trimmed_assets/' + data.job_data.a_e_media_id + '_' + lang + '.wav_' + lang + '_trimmed.wav'}}
+                    </filename>
+                </dub>
+                {% endfor %}
+                {% endif %}
+            </dubList>-->
         </material>
         <publicationList>
             <publication>
