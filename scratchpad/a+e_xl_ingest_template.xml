@@ -99,19 +99,6 @@
             </materialRef>
             <assetIdRef>{{ data.job_data.availasset_episodecontentid }}</assetIdRef>
             <DRMEnabled>false</DRMEnabled>
-
-<dubList>
-    {% if data.job_data.files_extraaudwavlanguages %}
-    {% for lang in data.job_data.files_extraaudwavlanguages.split(',') %}
-    <dub language="{{ lang | get_2char_lang_code('--') }}" displayName="{{ lang | get_language }}" channels="" order="LR">
-        <filename>
-            {{ data.base_url + '/aud/' + data.job_data.a_e_media_id + '_' + lang + '.wav_' + lang + '.wav'}}
-        </filename>
-    </dub>
-    {% endfor %}
-    {% endif %}
-</dubList>
-            <!--
 <subtitleList>
     {% if data.job_data.files_sublanguages %}
     {% for lang in data.job_data.files_sublanguages.split(',') %}
@@ -120,8 +107,18 @@
     </subtitle>
     {% endfor %}
     {% endif %}
-</subtitleList>
--->
+</subtitleList><!--
+<dubList>
+    {% if data.job_data.files_extraaudwavlanguages %}
+    {% for lang in data.job_data.files_extraaudwavlanguages.split(',') %}
+    <dub language="{{ lang | get_2char_lang_code('--') }}" displayName="{{ lang | get_language }}" channels="" order="LR">
+        <filename>
+            {{ data.base_url + '/aud/' + data.job_data.a_e_media_id + '_' + lang + '.wav_' + lang + '.wav'}}
+        </filename>
+    </dub>-->
+    {% endfor %}
+    {% endif %}
+</dubList>
         </material>
         <publicationList>
             <publication>
