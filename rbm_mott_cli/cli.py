@@ -263,84 +263,8 @@ def ingest(ctx, i, it, xlwi, xlkr, xlfir, xljidc, t, u, e, l, s, v, nj):
 # TODO: try to get default language from business unit
 def create_ingest_metadata(data_json, template_fp=None, verbose=False):
     # create data object to render template
-
     item_id, metadata = ingest_metadata.create(data_json, template_fp=template_fp, verbose=verbose)
-
-    ## save metadata to file
-    # ingest_metadata_fn = datetime.now().strftime("%Y-%m-%d-%H-%M-%S-")
-    # ingest_metadata_fn += item_id + '.xml'
-    # with open(os.path.join(ctx.obj['working_dir'], ingest_metadata_fn), 'w', encoding='utf8') as f:
-    #    f.write(metadata)
-    #    echo("Saved ingest metadata: {}".format(f.name))
-    #    f.close()
-    #
     return metadata
-
-
-"""
-
-def assets_ingest(ctx, i, it, xlwi, xlkr, xlfir, t, u, e, l, s, v):
- 
-    ...
-
-    error_list = []
-    for item in items_json:
-        item_id, metadata = create_ingest_metadata(ctx, data_json=item,
-                                                   default_language=l,
-                                                   template_fp=t.name if t else None,
-                                                   base_url=u, exclude_list=e)
-
-        if v:
-            echo('items_json...')
-            print(item)
-            echo(item)
-            echo('created metadata...')
-            echo(f'item_id: {item_id}')
-            echo(f'metadata: {metadata}')
-
-        if not s:
-            response = ctx.obj['mott_client'].post_assets(metadata)
-            if response:
-                echo(response)
-            else:
-                echo("Couldn't ingest asset")
-                error_list.append(item_id)
-        else:
-            echo('Simulation mode: skipping API call')
-
-    success_count = len(items_json) - len(error_list)
-    echo('{} items exported. {} errors.'.format(success_count, len(error_list)), color='green')
-    for err in error_list:
-        echo('Could not export: {}'.format(err), color='red')
-"""
-
-"""
-BATCH = [
-    JOB{
-        type
-        'external_data': json
-        'internal_data': xml
-        'tasks': [
-                TASK{
-                    type: 'tags'
-                    task_ingest_metadata: xml
-                    obj_id: str
-                    processed: True/False
-                    success: True/False
-                    result_msg: 
-                    process
-                }
-            ]
-        },
-        total_tasks
-        current_task
-        process_next_task
-        processed: derived from sum of task status
-        success: derived from sum of task status
-        msg: derived from sum of task msgs
-    }
-]
-"""
 
 
 #########################################################################
@@ -388,65 +312,6 @@ def product_print(ctx, i, e):
 @click.pass_context
 def asset(ctx):
     ctx.obj['focus'] = 'assets'
-
-
-@asset.command("ingest")
-@click.option('-i', help="Local input file for ingest", type=click.File('r', encoding='utf8'), required=True)
-@click.option('-it', help="input file type", type=click.Choice(['excel', 'json'], case_sensitive=False),
-              default='json', required=True)
-@click.option('-xlwi', type=int, default=0)
-@click.option('-xlkr', type=int, multiple=True, default=1)
-@click.option('-xlfir', type=int, default=2)
-@click.option('-t', help="Local template file for ingest", type=click.File('r', encoding='utf8'))
-@click.option('-u', help="Base URL to add to file locations")
-@click.option('-e', help="Things to exclude from injest, e.g. material, tag", multiple=True)
-@click.option('-l', help="Default language, 2 letter code", default='en')
-@click.option('-s', help="Simulation mode", default=False, is_flag=True)
-@click.option('-v', help="Verbose mode", default=False, is_flag=True)
-@click.pass_context
-@log_function_call
-def assets_ingest(ctx, i, it, xlwi, xlkr, xlfir, t, u, e, l, s, v):
-    # get items json
-    items_json = []
-    if it == 'json':
-        items_json = json.load(i)
-    elif it == 'excel':
-        items_json = excel_utils.list_of_dicts_from_excel(excel_filepath=i.name,
-                                                          worksheet_index=xlwi,
-                                                          key_rows=xlkr,
-                                                          first_item_row=xlfir)
-    if not isinstance(items_json, list):
-        items_json = [items_json]
-
-    error_list = []
-    for item in items_json:
-        item_id, metadata = create_ingest_metadata(ctx, data_json=item,
-                                                   default_language=l,
-                                                   template_fp=t.name if t else None,
-                                                   base_url=u, exclude_list=e)
-
-        if v:
-            echo('items_json...')
-            print(item)
-            echo(item)
-            echo('created metadata...')
-            echo(f'item_id: {item_id}')
-            echo(f'metadata: {metadata}')
-
-        if not s:
-            response = ctx.obj['mott_client'].post_assets(metadata)
-            if response:
-                echo(response)
-            else:
-                echo("Couldn't ingest asset")
-                error_list.append(item_id)
-        else:
-            echo('Simulation mode: skipping API call')
-
-    success_count = len(items_json) - len(error_list)
-    echo('{} items exported. {} errors.'.format(success_count, len(error_list)), color='green')
-    for err in error_list:
-        echo('Could not export: {}'.format(err), color='red')
 
 
 @asset.command("get")

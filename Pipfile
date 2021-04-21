@@ -17,6 +17,8 @@ colorama = "*"
 openpyxl = "*"
 country-converter = "*"
 pycountry = "*"
+ffmpeg-python = "*"
+srt = "*"
 
 [dev-packages]
 
