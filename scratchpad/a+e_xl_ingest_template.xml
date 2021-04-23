@@ -108,7 +108,7 @@
                 </audioList>
             </materialRef>
             <assetIdRef>{{ data.job_data.availasset_episodecontentid }}</assetIdRef>
-            <!--<DRMEnabled>false</DRMEnabled>-->
+            <DRMEnabled>false</DRMEnabled>
             <subtitleList>
                 {% if data.job_data.files_sublanguages is not none %}
                 {% for lang in data.job_data.files_sublanguages.split(',') %}
@@ -118,17 +118,17 @@
                 {% endfor %}
                 {% endif %}
             </subtitleList>
-            <!--<dubList>
+            <dubList>
                 {% if data.job_data.files_extraaudwavlanguages is not none %}
                 {% for lang in data.job_data.files_extraaudwavlanguages.split(',') %}
-                <dub language="{{ lang | get_2char_lang_code('--') }}" displayName="{{ lang | get_language }}" channels="" order="LR">
+                <dub language="{{ lang | get_2char_lang_code('-') }}" displayName="{{ lang | get_language }}" channels="" order="LR">
                     <filename>
                         {{ data.base_url + '/aud/trimmed_assets/' + data.job_data.a_e_media_id + '_' + lang + '.wav_' + lang + '_trimmed.wav'}}
                     </filename>
                 </dub>
                 {% endfor %}
                 {% endif %}
-            </dubList>-->
+            </dubList>
         </material>
         <publicationList>
             <publication>

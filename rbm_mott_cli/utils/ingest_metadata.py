@@ -2,25 +2,35 @@ import os
 import copy
 from xml.sax.saxutils import escape
 from datetime import datetime
+from io import StringIO
 
 from jinja2 import Template, Environment, Undefined
 from lxml import etree
 from slugify import slugify
 import pycountry  # https://pypi.org/project/pycountry/
+import requests
+
+import xmlschema
+xsd = xmlschema.XMLSchema("/Users/home/Code/RedBee-MOTT-API-Python-Client/rbm_mott_cli/utils/ingest.xsd")
+
+import logging
+logger = logging.getLogger(__name__)
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 NAMESPACE = '{http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1}'
+XSD_URL = 'https://raw.githubusercontent.com/EricssonBroadcastServices/EMP-api/master/asset-ingest/publish-xml/src/main/xsd/publish-metadata.xsd'
 
 this_file_dir, _ = os.path.split(os.path.abspath(__file__))
 default_template_path = os.path.join(this_file_dir, 'publish_metadata_template.xml')
 
 
-class SilentUndefined(Undefined):
-    '''
-    Don't break pageloads because vars arent there!
-    '''
+#########################################################################
+# INGEST METADATA CREATION
+#########################################################################
 
+class SilentUndefined(Undefined):
     def _fail_with_undefined_error(self, *args, **kwargs):
+        logger.warning(self._undefined_message)
         return ''
 
 
@@ -36,7 +46,6 @@ def create(data, template_fp=None, verbose=False):
     env.filters['format_datetime'] = format_datetime
     env.filters['get_2char_lang_code'] = get_2char_lang_code
     env.filters['get_language'] = get_language
-
 
     # get template text
     if template_fp is None:
@@ -64,27 +73,20 @@ def create(data, template_fp=None, verbose=False):
             if not elem.get(key):
                 elem.attrib.pop(key)
 
-    # remove empty nodes
+    # remove empty nodes APART from some that are allowed to be empty
     protected_elements = ['audio']
     found_protected = 0
     while len(root.xpath(".//*[not(node())]")) > found_protected:
         for element in root.xpath(".//*[not(node())]"):
             if etree.QName(element).localname in protected_elements:
-                print("found you!")
                 found_protected += 1
                 continue
             element.getparent().remove(element)
 
-    # get id
-    item_id = "no_id"
-    xpath_result = root.xpath("//id")
-    if len(xpath_result) > 0:
-        item_id = xpath_result[0].text.strip()
-
     if verbose:
         print(data)
 
-    return item_id, etree.tostring(root, pretty_print=True, encoding='UTF-8').decode()
+    return etree.tostring(root, pretty_print=True, encoding='UTF-8').decode()
 
 
 def split_ingest_metadata(metadata, node_type):
@@ -112,11 +114,19 @@ def split_ingest_metadata(metadata, node_type):
     for node in root.xpath(f"//ns:data/*[self::ns:{node_type}]",
                            namespaces={"ns": "http://video-metadata.emp.ebsd.ericsson.net/publish-metadata/v1"}):
         data_copy.append(node)
+
+        # validate xml
+        xsd.validate(root_copy)
+
         results.append(etree.tostring(root_copy, pretty_print=True, encoding='UTF-8').decode())
         data_copy.remove(node)
 
     return results
 
+
+#########################################################################
+# JINJA2 FILTERS
+#########################################################################
 
 def slugify_text(text):
     return slugify(text)
@@ -154,6 +164,17 @@ def format_datetime(dt, format=None):
     return datetime_object.strftime(DATE_FORMAT)
 
 
+#########################################################################
+# XML validation
+#########################################################################
+
+def download_schema_string():
+    r = requests.get(XSD_URL)
+    print(r.content)
+
+#########################################################################
+# HELPER FUNCTIONS
+#########################################################################
 
 def xml_escape_dict(d):
     for k, v in d.items():
@@ -161,3 +182,7 @@ def xml_escape_dict(d):
             xml_escape_dict(v)
         elif isinstance(v, str):
             d[k] = escape(v)
+
+
+if __name__ == "__main__":
+    download_schema_string()

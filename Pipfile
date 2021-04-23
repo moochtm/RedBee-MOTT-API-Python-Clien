@@ -19,6 +19,7 @@ country-converter = "*"
 pycountry = "*"
 ffmpeg-python = "*"
 srt = "*"
+xmlschema = "*"
 
 [dev-packages]
 

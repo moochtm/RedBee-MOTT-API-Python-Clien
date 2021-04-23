@@ -1,6 +1,7 @@
 from json.decoder import JSONDecodeError
 import requests
 import functools
+import json
 
 import logging
 logger = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ class Request:
         @functools.wraps(f)
         def wrapper(obj, *args, **kwargs) -> requests.request:
             logger.info('-'*60)
-            logger.info(f'{str(type(obj).__name__)}::{str(f.__name__)}')
+            logger.info(f'{str(type(obj).__name__)}: {str(f.__name__)}')
 
             payload = f(obj, *args, **kwargs)
             args = {
@@ -29,12 +30,12 @@ class Request:
             }
             response = requests.request(**args)
 
-            logger.debug(f'args: {args}')
+            logger.debug(f'{str(f.__name__)}: args: {json.dumps(args, indent=4)}')
             try:
-                logger.info(f'json: {response.json()}')
+                logger.info(f'{str(f.__name__)}: json: {json.dumps(response.json(), indent=4)}')
             except JSONDecodeError as e:
-                logger.info('json: None')
-            logger.info(f'status code: {response.status_code}')
+                logger.info('{str(f.__name__)}: json: None')
+            logger.info(f'{str(f.__name__)}: status code: {response.status_code}')
 
             return response
         return wrapper

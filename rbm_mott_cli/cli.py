@@ -30,23 +30,8 @@ minor_separator = ''.join([char * separator_length for char in ['-']])
 # CLI built using click
 # https://click.palletsprojects.com/en/7.x/
 ##########################################################################################
-# examples...
-# RBM_MOTT env >> gets and prints environment variables - DONE!
-# RBM_MOTT -cu Matt -bu MattTV products list - DONE!
-# RBM_MOTT -cu Matt -bu MattTV assets list - DONE!
-# RBM_MOTT -cu Matt -bu MattTV asset new -v hello.mp4 -md "medium description" -ts "horror, 2010, musical"
-# RBM_MOTT -cu Matt -bu MattTV asset new -v hello.mp4 -md "medium description" -ts "horror, 2010, musical"
-# RBM_MOTT -cu Matt -bu MattTV assets list --assetType TV_SHOW export --metadata --dir C:/mydir
-# RBM_MOTT -cu Matt -bu MattTV assets list --assetType TV_SHOW update --drm True --this-is-not-a-test
-# add a tag to something based on tag text:
-# get all tags
-# search tags and return tag_id
-# if tag doesn't exist already, create tag, and return tag_id
-# if tag_id returned, add tag
-
 
 @shell(prompt='mott > ')
-# @click.group() is replaced by @shell
 @click.option('--mgmt-api-key-id', help="Management API Key ID", envvar='MGMT_API_KEY_ID', required=True)
 @click.option('--mgmt-api-key-secret', help="Management API Key ID", envvar='MGMT_API_KEY_SECRET', required=True)
 @click.option('--cp-api-session-auth', help="Customer Portal API Session Auth Token", envvar='CP_API_SESSION_AUTH',
@@ -59,6 +44,7 @@ minor_separator = ''.join([char * separator_length for char in ['-']])
 @click.pass_context
 def cli(ctx, mgmt_api_key_id, mgmt_api_key_secret, cp_api_session_auth, debug, working_dir, write_log, cu, bu):
     echo(major_separator)
+
     # setup working directory
     if not os.path.exists(working_dir):
         echo(f"Working Dir does not exist: {working_dir}", logging.ERROR)
@@ -73,20 +59,26 @@ def cli(ctx, mgmt_api_key_id, mgmt_api_key_secret, cp_api_session_auth, debug, w
         echo("Sorry. Need to quit.")
         quit()
 
-    echo(f"Working Dir: {working_dir}")
+    echo(f"Working dir for this session: {working_dir}")
 
     # setup logging
     # if write-log enabled, enable writing log to working dir
     if write_log:
-        log_path = os.path.join(working_dir, 'mott_cli.log')
-        file_handler = logging.FileHandler(log_path)
+        file_handler = logging.FileHandler(os.path.join(working_dir, 'mott_cli.log'))
+        p = os.path.join(os.getcwd(), 'mott_cli.log')
+        if os.path.exists(p):
+            os.remove(p)
+        file_handler2 = logging.FileHandler(p)
         formatter = logging.Formatter('%(asctime)s - %(levelname)-8s - %(name)-28s : %(message)s')
         file_handler.setFormatter(formatter)
+        file_handler2.setFormatter(formatter)
         file_handler.setLevel(logging.INFO)
+        file_handler2.setLevel(logging.INFO)
         if debug:
             file_handler.setLevel(logging.DEBUG)
+            file_handler2.setLevel(logging.DEBUG)
         logger.addHandler(file_handler)
-        echo(f"Writing log file to: {log_path}")
+        logger.addHandler(file_handler2)
 
     # create mgmt api client
     try:
@@ -136,34 +128,41 @@ def test(ctx):
               default='json', required=True)
 @click.option('-xlwi', help="Excel worksheet index", type=int, default=0)
 @click.option('-xlkr', help="Excel key row index", type=int, multiple=True, default=1)
-@click.option('-xlfir', help="Excel first item row index", type=int, default=2)
+@click.option('-xljsr', help="Excel jobs start row index", type=int, default=2)
+@click.option('-xljer', help="Excel jobs end row index", type=int)
 @click.option('-xljidc', help="Excel job id column index", type=int, default=1)
+@click.option('-xljigc', help="Excel job ignore column index", type=int)
 @click.option('-t', help="Local template file for ingest", type=click.File('r', encoding='utf8'))
 @click.option('-u', help="Base URL to add to file locations")
 @click.option('-e', help="Things to exclude from ingest, e.g. material, tag", multiple=True)
 @click.option('-l', help="Default language, 2 letter code", default='en')
 @click.option('-s', help="Simulation mode", default=False, is_flag=True)
 @click.option('-v', help="Verbose mode", default=False, is_flag=True)
-@click.option('-nj', help="Number of Jobs to process", type=int)
 @click.pass_context
 @log_function_call
-def ingest(ctx, i, it, xlwi, xlkr, xlfir, xljidc, t, u, e, l, s, v, nj):
+def ingest(ctx, i, it, xlwi, xlkr, xljsr, xljer, xljidc, xljigc, t, u, e, l, s, v):
     # GET EXTERNAL DATA JSON TO DRIVE METADATA RENDER
     # get items json
-    if it == 'json':
-        external_json = json.load(i)
-    elif it == 'excel':
+    if it == 'excel':
         external_json = excel_utils.list_of_dicts_from_excel(excel_filepath=i.name,
                                                              worksheet_index=xlwi,
                                                              key_rows=xlkr,
-                                                             first_item_row=xlfir,
-                                                             ingest_job_id_column=xljidc)
+                                                             first_item_row=xljsr,
+                                                             ingest_job_id_column=xljidc,
+                                                             ingest_job_ignore_column=xljigc)
+    else:
+        external_json = json.load(i)
     if not isinstance(external_json, list):
         external_json = [external_json]
 
     # if max number of jobs specified, trim list of job jsons
-    if nj and nj < len(external_json):
-        external_json = external_json[:nj]
+    if xljer and xljer - xljsr < len(external_json):
+        external_json = external_json[:xljer - xljsr]
+
+    # if 'ingest_job_ignore' exists in json, and is true for an item, remove that item
+    for item in external_json:
+        if 'ingest_job_ignore' in item and item['ingest_job_ignore'] == True:
+            external_json.remove(item)
 
     if v:
         echo(external_json)
@@ -189,7 +188,7 @@ def ingest(ctx, i, it, xlwi, xlkr, xlfir, xljidc, t, u, e, l, s, v, nj):
     # for each item
     # get complete ingest metadata, and save as file
     for job in ctx.obj['ingest_jobs']:
-        job['render_output'] = create_ingest_metadata(job['render_input'], template_fp=template_fp)
+        job['render_output'] = ingest_metadata.create(job['render_input'], template_fp=template_fp)
 
         # save metadata to file
         ingest_metadata_fn = "ingest_xml-"
@@ -257,14 +256,6 @@ def ingest(ctx, i, it, xlwi, xlkr, xlfir, xljidc, t, u, e, l, s, v, nj):
                         job_continue_processing = False
 
     # TODO: add tracking for job status and report at end
-
-
-# TODO: FINISH THIS
-# TODO: try to get default language from business unit
-def create_ingest_metadata(data_json, template_fp=None, verbose=False):
-    # create data object to render template
-    item_id, metadata = ingest_metadata.create(data_json, template_fp=template_fp, verbose=verbose)
-    return metadata
 
 
 #########################################################################
